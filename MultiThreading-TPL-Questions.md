@@ -653,6 +653,47 @@ flowchart TB
 
 **Scenario:** Thread A holds Lock1 and waits for Lock2; Thread B holds Lock2 and waits for Lock1. The application hangs. How would you fix this?
 
+**Broken code (causes deadlock):**
+
+```csharp
+object Lock1 = new object();
+object Lock2 = new object();
+
+// Thread A: acquires Lock1, then waits for Lock2
+void ThreadA()
+{
+    lock (Lock1)
+    {
+        Thread.Sleep(10);  // Simulate work; allows Thread B to acquire Lock2
+        lock (Lock2)       // DEADLOCK: Thread B holds Lock2 and waits for Lock1
+        {
+            // work
+        }
+    }
+}
+
+// Thread B: acquires Lock2, then waits for Lock1
+void ThreadB()
+{
+    lock (Lock2)
+    {
+        Thread.Sleep(10);
+        lock (Lock1)       // DEADLOCK: Thread A holds Lock1 and waits for Lock2
+        {
+            // work
+        }
+    }
+}
+
+// Both threads run concurrently → deadlock
+var t1 = new Thread(ThreadA);
+var t2 = new Thread(ThreadB);
+t1.Start();
+t2.Start();
+t1.Join();  // Hangs forever
+t2.Join();
+```
+
 **Solution:** Acquire locks in a consistent order (e.g., always Lock1 then Lock2) or use `Monitor.TryEnter` with timeout:
 
 ```csharp
