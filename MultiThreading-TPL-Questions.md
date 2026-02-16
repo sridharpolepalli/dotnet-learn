@@ -884,6 +884,3 @@ cts.Cancel();
 | TPL | Prefer Task/async over raw Thread for most scenarios |
 | Task vs Thread | Task is higher-level, composable, and pool-based |
 
----
-
-*Document generated as a study guide for Multi-Threading and TPL concepts.*
