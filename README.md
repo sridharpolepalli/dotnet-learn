@@ -15,3 +15,5 @@ A guide covering:
 - Synchronization and lock types (Lock, Monitor, Semaphore, Mutex, SpinLock, ReaderWriterLock)
 - TPL, Task, and Task&lt;T&gt;
 - Scenario-based questions with solutions
+
+**[ADO.NET: Detailed Learning Guide (Step-by-Step + Examples)](./ADO.NET-Learning-Guide.md)**
