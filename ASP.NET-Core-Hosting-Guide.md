@@ -35,9 +35,9 @@ A **web server** is software (and often the machine running it) that **listens f
 
 ```mermaid
 flowchart LR
-    Client[Browser / Client]
+    Client["Browser or Client"]
     WS[Web Server]
-    App[ASP.NET Core App]
+    App["ASP.NET Core App"]
 
     Client -->|"HTTP Request"| WS
     WS -->|"Forward or serve"| App
@@ -71,23 +71,23 @@ flowchart TB
         C1 --> K1
     end
 
-    subgraph Option2["IIS (Windows)"]
+    subgraph Option2["IIS Windows"]
         C2[Client]
         IIS[IIS]
         K2[Kestrel]
         C2 --> IIS --> K2
     end
 
-    subgraph Option3["Linux + nginx"]
+    subgraph Option3["Linux and nginx"]
         C3[Client]
         NX[nginx]
         K3[Kestrel]
         C3 --> NX --> K3
     end
 
-    subgraph Option4["Docker / Azure"]
+    subgraph Option4["Docker or Azure"]
         C4[Client]
-        Host[Container / App Service]
+        Host["Container or App Service"]
         K4[Kestrel]
         C4 --> Host --> K4
     end
@@ -112,11 +112,11 @@ A **reverse proxy** is a server that sits **in front of** your application. Clie
 ```mermaid
 flowchart LR
     Client[Client]
-    RP[Reverse Proxy\n(IIS / nginx)]
-    App[Kestrel\nASP.NET Core]
+    RP["Reverse Proxy IIS or nginx"]
+    App["Kestrel ASP.NET Core"]
 
-    Client -->|"Request (port 80/443)"| RP
-    RP -->|"Forward (e.g. localhost:5000)"| App
+    Client -->|"Request port 80 443"| RP
+    RP -->|"Forward"| App
     App -->|"Response"| RP
     RP -->|"Response"| Client
 ```
@@ -142,10 +142,10 @@ When you host ASP.NET Core on **IIS**, **Kestrel** is the HTTP engine that runs 
 ```mermaid
 flowchart TB
     Client[Client]
-    IIS[IIS\nReverse proxy]
-    Kestrel[Kestrel\nASP.NET Core app]
+    IIS["IIS Reverse proxy"]
+    Kestrel["Kestrel ASP.NET Core app"]
 
-    Client -->|":80 / :443"| IIS
+    Client -->|"port 80 443"| IIS
     IIS -->|"Forward"| Kestrel
     Kestrel --> IIS
     IIS --> Client
@@ -213,23 +213,23 @@ Follow these steps to host your ASP.NET Core app on **IIS** on your Windows mach
 
 ```mermaid
 flowchart TB
-    subgraph Prep["Prerequisites (one-time)"]
-        A[Hosts file: api.recipe.com → 127.0.0.1]
-        B[IIS + features]
+    subgraph Prep["Prerequisites one-time"]
+        A["Hosts file"]
+        B["IIS and features"]
         C[URL Rewrite]
-        D[.NET Hosting Bundle]
+        D["NET Hosting Bundle"]
     end
 
     subgraph Deploy["Deploy"]
-        E[dotnet publish]
-        F[IIS: Add website + bindings]
-        G[Permissions: IIS_IUSRS]
-        H[App Pool: No Managed Code]
+        E["dotnet publish"]
+        F["IIS Add website and bindings"]
+        G["Permissions IIS_IUSRS"]
+        H["App Pool No Managed Code"]
         I[web.config]
     end
 
     Prep --> Deploy
-    Deploy --> J[Restart site → Browse]
+    Deploy --> J["Restart and Browse"]
 ```
 
 ### 6.1 Prerequisites (one-time setup)

@@ -76,15 +76,15 @@ A **port** is a 16-bit number (0–65535) that, together with an **IP address**,
 
 ```mermaid
 flowchart TB
-    subgraph Client["Client machine (e.g. 10.0.0.5)"]
-        Browser[Browser : random port 54321]
-        App[Your app : random port 54322]
+    subgraph Client["Client machine"]
+        Browser["Browser - port 54321"]
+        App["Your app - port 54322"]
     end
 
-    subgraph Server["Server machine (e.g. 192.168.1.10)"]
-        Web[Web server : port 80]
-        HTTPS[HTTPS : port 443]
-        Custom[Custom app : port 5000]
+    subgraph Server["Server machine"]
+        Web["Web server - port 80"]
+        HTTPS["HTTPS - port 443"]
+        Custom["Custom app - port 5000"]
     end
 
     Browser -->|"dest port 80"| Web
@@ -111,10 +111,10 @@ A **network protocol** is a set of rules that define how data is formatted, tran
 ```mermaid
 flowchart LR
     subgraph App["Application layer"]
-        HTTP[HTTP / HTTPS]
+        HTTP["HTTP or HTTPS"]
     end
     subgraph Trans["Transport layer"]
-        TCP[TCP / UDP]
+        TCP["TCP or UDP"]
     end
     subgraph Net["Network layer"]
         IP[IP]
@@ -205,18 +205,18 @@ A minimal example shows how **TCP** delivers a raw byte stream: the application 
 
 ```mermaid
 sequenceDiagram
-    participant Server as TCP Server (TcpListener)
-    participant Client as TCP Client (TcpClient)
+    participant Server as TCP Server
+    participant Client as TCP Client
 
-    Note over Server: Bind to IP:Port (e.g. 127.0.0.1:8888)
-    Server->>Server: Start()
-    Client->>Server: Connect(host, port)
-    Server->>Client: AcceptTcpClient() → TcpClient
-    Note over Server,Client: Stream read/write (bytes)
-    Client->>Server: Write("Hello")
-    Server->>Client: Read → "Hello"
-    Server->>Client: Write("Hi back")
-    Client->>Client: Read → "Hi back"
+    Note over Server: Bind to IP and Port
+    Server->>Server: Start
+    Client->>Server: Connect
+    Server->>Client: AcceptTcpClient
+    Note over Server,Client: Stream read and write
+    Client->>Server: Write Hello
+    Server->>Client: Read Hello
+    Server->>Client: Write Hi back
+    Client->>Client: Read Hi back
 ```
 
 ### Simple TCP server (console)
@@ -309,23 +309,23 @@ sequenceDiagram
     participant S as Server
 
     Note over C,S: 1. Client Hello
-    C->>S: ClientHello (TLS version, cipher suites, random)
+    C->>S: ClientHello
 
-    Note over C,S: 2. Server Hello + Certificate
-    S->>C: ServerHello (chosen cipher suite, random)
-    S->>C: Certificate (server public key)
+    Note over C,S: 2. Server Hello and Certificate
+    S->>C: ServerHello
+    S->>C: Certificate
     S->>C: ServerHelloDone
 
-    Note over C,S: 3. Key exchange (asymmetric)
+    Note over C,S: 3. Key exchange
     C->>C: Verify certificate
-    C->>S: PreMasterSecret (encrypted with server public key)
-    Note over C,S: Both derive same session keys
+    C->>S: PreMasterSecret
+    Note over C,S: Both derive session keys
 
     Note over C,S: 4. Switch to encrypted channel
-    C->>S: ChangeCipherSpec, Finished
-    S->>C: ChangeCipherSpec, Finished
+    C->>S: ChangeCipherSpec Finished
+    S->>C: ChangeCipherSpec Finished
 
-    Note over C,S: 5. Application data (HTTP) encrypted with symmetric key
+    Note over C,S: 5. Application data encrypted
     C->>S: Encrypted HTTP request
     S->>C: Encrypted HTTP response
 ```
@@ -386,12 +386,12 @@ HTTP is a **request–response**, **stateless** protocol. The client sends a **r
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (browser / app)
-    participant S as Server (e.g. ASP.NET Core)
+    participant C as Client
+    participant S as Server
 
-    C->>S: HTTP Request (method, URL, headers, body)
-    S->>S: Process (routing, middleware, handler)
-    S->>C: HTTP Response (status, headers, body)
+    C->>S: HTTP Request
+    S->>S: Process request
+    S->>C: HTTP Response
 ```
 
 ### HTTP message structure (simplified)
@@ -462,7 +462,7 @@ Understanding these concepts helps you design and debug APIs and web apps in ASP
 ```mermaid
 flowchart TB
     subgraph Apps["Your applications"]
-        MVC[MVC / Razor Pages]
+        MVC["MVC or Razor Pages"]
         API[Web API]
         Blazor[Blazor]
         SignalR[SignalR]
@@ -471,10 +471,10 @@ flowchart TB
 
     subgraph ASP["ASP.NET Core"]
         Middleware[Middleware pipeline]
-        Host[Host / Kestrel]
+        Host["Host and Kestrel"]
     end
 
-    subgraph Runtime[".NET Runtime"]
+    subgraph Runtime["NET Runtime"]
         BCL[BCL]
     end
 
@@ -492,12 +492,12 @@ flowchart TB
 ```mermaid
 flowchart LR
     Req[Request] --> Exception[Exception handling]
-    Exception --> HSTS[HSTS / HTTPS]
+    Exception --> HSTS["HSTS and HTTPS"]
     HSTS --> Static[Static files]
     Static --> Routing[Routing]
     Routing --> Auth[Authentication]
     Auth --> CORS[CORS]
-    CORS --> Endpoint[Endpoint (controller / minimal API)]
+    CORS --> Endpoint["Endpoint"]
     Endpoint --> Resp[Response]
 ```
 
@@ -512,7 +512,7 @@ flowchart LR
     subgraph Project["ASP.NET Core project"]
         P[Program.cs]
         App[App settings]
-        Cont[Controllers / Pages]
+        Cont["Controllers or Pages"]
         WWW[wwwroot]
         Prop[Properties]
     end
@@ -554,10 +554,10 @@ MyWebApp/
 
 ```mermaid
 flowchart TB
-    A["var builder = WebApplication.CreateBuilder(args)"] --> B["Configure services (AddControllers, AddDbContext, etc.)"]
-    B --> C["var app = builder.Build()"]
-    C --> D["Configure middleware (UseRouting, MapControllers, etc.)"]
-    D --> E["app.Run()"]
+    A["CreateBuilder"] --> B["Configure services"]
+    B --> C["Build"]
+    C --> D["Configure middleware"]
+    D --> E["Run"]
 ```
 
 **Minimal example:**
@@ -593,14 +593,14 @@ app.Run();
 
 ```mermaid
 flowchart TB
-    subgraph CreateBuilder["WebApplication.CreateBuilder(args)"]
-        Config[Configuration: appsettings, env vars, args]
-        Logging[Logging: default providers]
-        Host[Host: Kestrel, URLs]
-        Services[Services: DI container]
+    subgraph CreateBuilder["WebApplication CreateBuilder"]
+        Config["Configuration"]
+        Logging["Logging"]
+        Host["Host and Kestrel"]
+        Services["Services and DI"]
     end
 
-    subgraph Build["builder.Build()"]
+    subgraph Build["builder Build"]
         App[WebApplication]
     end
 
@@ -641,11 +641,11 @@ var app = builder.Build();
 ```mermaid
 flowchart LR
     subgraph Profiles["Launch profiles"]
-        Kestrel[Kestrel: http://localhost:5000]
-        IIS[IIS Express: random port]
-        WSL[WSL: Linux URL]
+        Kestrel["Kestrel - localhost 5000"]
+        IIS["IIS Express"]
+        WSL["WSL"]
     end
-    IDE[Visual Studio / VS Code] --> Profiles
+    IDE["Visual Studio or VS Code"] --> Profiles
 ```
 
 **Typical contents:**
@@ -696,14 +696,14 @@ ASP.NET Core apps are typically published as **self-contained** or **framework-d
 ```mermaid
 flowchart TB
     subgraph Options["Deployment options"]
-        IIS[IIS (Windows)]
-        Linux[Linux + Kestrel / nginx]
+        IIS["IIS Windows"]
+        Linux["Linux and Kestrel or nginx"]
         Docker[Docker container]
-        Azure[Azure App Service / AKS]
+        Azure["Azure App Service"]
         K8s[Kubernetes]
     end
 
-    Code[Your ASP.NET Core app] --> Publish[dotnet publish]
+    Code["Your ASP.NET Core app"] --> Publish["dotnet publish"]
     Publish --> Options
 ```
 
@@ -734,15 +734,15 @@ When hosting behind **IIS**, the ASP.NET Core app can run **in-process** (inside
 ```mermaid
 flowchart TB
     subgraph InProc["In-Process"]
-        Req1[HTTP Request] --> W3WP[w3wp.exe - IIS Worker]
-        W3WP --> Core1[ASP.NET Core inside same process]
+        Req1[HTTP Request] --> W3WP["w3wp.exe IIS Worker"]
+        W3WP --> Core1["ASP.NET Core same process"]
         Core1 --> Resp1[Response]
     end
 
     subgraph OutProc["Out-of-Process"]
-        Req2[HTTP Request] --> W3WP2[w3wp.exe - IIS]
+        Req2[HTTP Request] --> W3WP2["w3wp.exe IIS"]
         W3WP2 --> Fwd[Forward to port]
-        Fwd --> Kestrel[dotnet.exe - Kestrel]
+        Fwd --> Kestrel["dotnet.exe Kestrel"]
         Kestrel --> Resp2[Response]
     end
 ```
@@ -766,12 +766,12 @@ Configuration is built in a defined order; later sources override earlier ones f
 
 ```mermaid
 flowchart LR
-    subgraph Sources["Configuration sources (first → last)"]
+    subgraph Sources["Configuration sources order"]
         A[appsettings.json]
-        B[appsettings.{Environment}.json]
-        C[User Secrets - Dev]
+        B["appsettings Environment json"]
+        C["User Secrets Dev"]
         D[Environment variables]
-        E[Command-line args]
+        E["Command-line args"]
     end
     A --> B --> C --> D --> E
     E --> Merged[IConfiguration]
@@ -864,16 +864,16 @@ The flow is: **Request → Routing → Controller → Model (optional) → View 
 
 ```mermaid
 flowchart TB
-    subgraph User["User / Browser"]
+    subgraph User["User or Browser"]
         Req[HTTP Request]
-        Resp[HTML / JSON Response]
+        Resp["HTML or JSON Response"]
     end
 
     subgraph Server["ASP.NET Core MVC"]
         Route[Routing]
         Ctrl[Controller]
-        Model[Model / Business logic]
-        View[View engine / Razor]
+        Model["Model and Business logic"]
+        View["View engine Razor"]
     end
 
     Req --> Route
@@ -893,17 +893,17 @@ sequenceDiagram
     participant B as Browser
     participant R as Router
     participant C as Controller
-    participant M as Model / Service
+    participant M as Model
     participant V as View Engine
 
-    B->>R: GET /Products/Index
-    R->>C: Route to ProductsController.Index()
-    C->>M: Get data (e.g. list of products)
+    B->>R: GET Products Index
+    R->>C: Route to Controller Index
+    C->>M: Get data
     M-->>C: Model data
-    C->>V: Return View(model)
-    V->>V: Render View (e.g. Index.cshtml)
+    C->>V: Return View
+    V->>V: Render View
     V-->>C: HTML
-    C-->>B: HTTP 200 + HTML
+    C-->>B: HTTP 200 and HTML
 ```
 
 **Step-by-step:**
@@ -960,17 +960,17 @@ Angular does not use the label “MVVM” in its docs, but the pattern is simila
 
 ```mermaid
 flowchart TB
-    subgraph View["View (Template)"]
-        HTML[Component template .html]
+    subgraph View["View Template"]
+        HTML["Component template html"]
     end
 
-    subgraph ViewModel["ViewModel (Component class)"]
-        Props[Properties: tasks, selectedTask]
-        Methods[Methods: addTask, deleteTask]
+    subgraph ViewModel["ViewModel Component class"]
+        Props["Properties"]
+        Methods["Methods"]
     end
 
-    subgraph Model["Model (Data / Services)"]
-        Service[TaskService - HTTP, state]
+    subgraph Model["Model Data and Services"]
+        Service["TaskService"]
     end
 
     HTML <-->|"data binding"| ViewModel
