@@ -19,3 +19,5 @@ A guide covering:
 **[ADO.NET: Professional Learning Guide](./ADO.NET-Learning-Guide.md)** — Architecture, providers, connectivity, security, transactions, performance. Includes SQL setup script ([`docs/ado-net/AdoNetSampleDatabase.sql`](./docs/ado-net/AdoNetSampleDatabase.sql)) and copy-ready C# examples.
 
 **[ASP.NET Core — Network, HTTP & Web Fundamentals](./ASP.NET-Core-Network-HTTP-Guide.md)** — Why ASP.NET Core, network programming and protocols, TCP vs HTTP, HTTP vs HTTPS (SSL/TLS handshake, asymmetric vs symmetric encryption), and HTTP in detail (methods and important concepts).
+
+**[ASP.NET Core — Hosting Guide](./ASP.NET-Core-Hosting-Guide.md)** — Web server and reverse proxy concepts, ASP.NET Core hosting options, step-by-step: create MVC app, deploy to local IIS (hosts file, IIS features, URL Rewrite, Hosting Bundle, web.config, in-process vs out-of-process), Kestrel-only hosting, Docker (install and host ASP.NET Core), Azure App Service (Visual Studio and dotnet/AZ CLI).
