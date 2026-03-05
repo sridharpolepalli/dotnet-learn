@@ -1,6 +1,59 @@
-# ADO.NET — Detailed Learning Documentation (Step-by-Step + Copy-Ready Examples)
+# ADO.NET — Professional Learning Guide
 
-This guide consolidates **all concepts and notes** from `S2-Module-7 - .NET Advanced - ADO.NET.docx` and expands them into a practical, copy-ready reference with **Mermaid** illustrations.
+**Enterprise-grade reference** for .NET data access using ADO.NET: architecture, providers, connectivity, commands, security, transactions, and performance. Includes **copy-ready C# examples** and **Mermaid** diagrams. All code samples use the **sample database** defined in the setup scripts below.
+
+---
+
+## Table of Contents
+
+| Phase | Topic |
+|-------|--------|
+| **Prerequisites** | [Database setup](#prerequisites--database-setup) |
+| 1 | [What is ADO.NET?](#1-what-is-adonet) · [Architecture](#2-architecture-overview) · [Data providers](#3-net-data-providers) · [Namespaces](#6-namespaces) · [Internal flow](#7-how-adonet-works-internally) |
+| 2 | [Core components](#phase-2--core-adonet-components-sql-server): SqlConnection, SqlCommand, SqlDataReader, SqlDataAdapter, DataSet, DataTable, SqlParameter, SqlTransaction |
+| 3 | [Connectivity](#phase-3--connectivity--configuration): Connected vs disconnected, [connection strings](#17-connection-strings), [authentication](#18-authentication-methods), [connection pooling](#19-connection-pooling) |
+| 4 | [Commands](#phase-4--commands--execution): ExecuteNonQuery/Reader/Scalar/XmlReader, command types, CommandTimeout, CommandBehavior |
+| 5 | [Data retrieval](#phase-5--data-retrieval-approaches): SqlDataReader (async, multiple result sets), DataSet & DataAdapter (Fill, Update, relations, XML) |
+| 6 | [Security](#phase-6--security): SQL injection, parameterized queries, output/return/TVP |
+| 7 | [Transactions](#phase-7--transactions): ACID, local/distributed, isolation levels |
+| 8 | [Advanced](#phase-8--advanced-adonet-topics): Async, SqlBulkCopy, stored procedures, XML/JSON, large data, error handling |
+| 9 | [Performance & practices](#phase-9--performance--best-practices) |
+| 10 | [Architecture](#phase-10--architecture--real-world-usage): Web API, repository, DI, logging, testing |
+| — | [Limitations & alternatives](#ado-net-limitations--alternatives) · [References](#references) |
+
+---
+
+## Prerequisites — Database Setup
+
+All examples in this guide assume the following **sample database and objects** exist. Run the script **once** before executing any C# code.
+
+**Script location:** [`docs/ado-net/AdoNetSampleDatabase.sql`](docs/ado-net/AdoNetSampleDatabase.sql)
+
+**What it creates:**
+
+| Object | Purpose |
+|--------|---------|
+| Database `AdoNetSample` | Isolated database for labs |
+| `dbo.Customers` | Id, Name, Email, City, Country, CreatedAt — CRUD, filtering, relations |
+| `dbo.Orders` | Id, CustomerId, OrderNumber, OrderDate, TotalAmount, Status — multi-table, DataRelation |
+| `dbo.Accounts` | Id, AccountName, Balance — transaction (transfer) examples |
+| `dbo.Files` | Id, FileName, ContentType, Content (VARBINARY(MAX)) — BLOB/streaming |
+| `dbo.ApplicationUsers` | Id, UserName, DisplayName, IsActive — SQL injection / parameterized examples |
+| `usp_GetCustomerById` | Input parameter, single result set |
+| `usp_GetDashboardData` | Multiple result sets |
+| `usp_GetCustomerCountByCity` | Output parameter |
+| `usp_TransferBalance` | Inputs, output message, return code, internal transaction |
+| `usp_GetCustomersByIds` | Table-valued parameter (dbo.IdList) |
+
+**How to run:** In **SQL Server Management Studio** or **Azure Data Studio**, open `AdoNetSampleDatabase.sql`, connect to your instance (local or Azure SQL), and execute the full script.
+
+**Connection string used in examples:**
+
+```text
+Server=.;Database=AdoNetSample;Integrated Security=True;TrustServerCertificate=True;
+```
+
+For Azure SQL, use your server name and enable `Encrypt=True` (see [Authentication](#18-authentication-methods)).
 
 ---
 
@@ -208,166 +261,230 @@ flowchart LR
 
 ## PHASE 2 — Core ADO.NET Components (SQL Server)
 
-> The examples below use SQL Server classes. The same patterns apply to ODBC/OLE DB with equivalent types.
+All examples use the **AdoNetSample** database and tables created by [`AdoNetSampleDatabase.sql`](docs/ado-net/AdoNetSampleDatabase.sql). The same patterns apply to ODBC/OLE DB with their equivalent types.
+
+**Shared connection string for this section:**
+
+```csharp
+private const string ConnectionString =
+    "Server=.;Database=AdoNetSample;Integrated Security=True;TrustServerCertificate=True;";
+```
 
 ### 8) SqlConnection
+
+Open a connection, verify state, and ensure disposal so the connection returns to the pool.
 
 ```csharp
 using System;
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-using (var connection = new SqlConnection(cs))
+using (var connection = new SqlConnection(ConnectionString))
 {
     connection.Open();
-    Console.WriteLine(connection.State); // Open
+    Console.WriteLine($"Connection state: {connection.State}, Server: {connection.DataSource}");
 }
 ```
 
-### 9) SqlCommand
+### 9) SqlCommand — Insert with parameters
+
+Use **parameterized** commands for all user input (see [Security](#24-sql-injection)).
 
 ```csharp
 using System.Data;
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-using (var connection = new SqlConnection(cs))
-using (var command = new SqlCommand("INSERT INTO Customers(Name) VALUES(@Name);", connection))
+public static int InsertCustomer(string connectionString, string name, string email, string city, string country)
 {
-    command.Parameters.Add("@Name", SqlDbType.NVarChar, 100).Value = "Alice";
+    const string sql = @"
+        INSERT INTO dbo.Customers (Name, Email, City, Country)
+        VALUES (@Name, @Email, @City, @Country);
+        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand(sql, connection);
+
+    command.Parameters.Add("@Name",    SqlDbType.NVarChar, 100).Value = name;
+    command.Parameters.Add("@Email",   SqlDbType.NVarChar, 255).Value = (object?)email ?? DBNull.Value;
+    command.Parameters.Add("@City",    SqlDbType.NVarChar, 100).Value = (object?)city ?? DBNull.Value;
+    command.Parameters.Add("@Country", SqlDbType.NVarChar, 100).Value = (object?)country ?? DBNull.Value;
+
     connection.Open();
-    command.ExecuteNonQuery();
+    return (int)command.ExecuteScalar();
 }
 ```
 
-### 10) SqlDataReader
+### 10) SqlDataReader — Forward-only, read-only stream
+
+Prefer **column index** or **GetOrdinal** in hot paths for performance; handle `DBNull` for nullable columns.
 
 ```csharp
+using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-using (var connection = new SqlConnection(cs))
-using (var command = new SqlCommand("SELECT Id, Name FROM Customers;", connection))
+public static List<(int Id, string Name, string? City)> GetCustomers(string connectionString)
 {
+    const string sql = "SELECT Id, Name, City FROM dbo.Customers ORDER BY Name;";
+    var list = new List<(int, string, string?)>();
+
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand(sql, connection);
     connection.Open();
-    using (var reader = command.ExecuteReader())
+
+    using var reader = command.ExecuteReader();
+    var colId   = reader.GetOrdinal("Id");
+    var colName = reader.GetOrdinal("Name");
+    var colCity = reader.GetOrdinal("City");
+
+    while (reader.Read())
     {
-        while (reader.Read())
-        {
-            int id = reader.GetInt32(0);
-            string name = reader.GetString(1);
-            Console.WriteLine($"{id}: {name}");
-        }
+        var id   = reader.GetInt32(colId);
+        var name = reader.GetString(colName);
+        var city = reader.IsDBNull(colCity) ? null : reader.GetString(colCity);
+        list.Add((id, name, city));
     }
+
+    return list;
 }
 ```
 
-### 11) SqlDataAdapter
+### 11) SqlDataAdapter — Fill DataTable
+
+Adapter manages connection open/close around `Fill`/`Update`; no need to hold the connection open.
 
 ```csharp
 using System.Data;
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-var table = new DataTable();
-using (var adapter = new SqlDataAdapter("SELECT Id, Name FROM Customers;", cs))
+public static DataTable GetCustomersTable(string connectionString)
 {
-    adapter.Fill(table);
+    const string sql = "SELECT Id, Name, Email, City, Country, CreatedAt FROM dbo.Customers;";
+    var table = new DataTable("Customers");
+
+    using (var adapter = new SqlDataAdapter(sql, connectionString))
+    {
+        adapter.Fill(table);
+    }
+
+    return table;
 }
 ```
 
-### 12) DataSet
+### 12) DataSet — Multiple tables and table mappings
+
+Use **TableMappings** so `ds.Tables["Customers"]` and `ds.Tables["Orders"]` are named correctly.
 
 ```csharp
 using System.Data;
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-var ds = new DataSet();
-using (var adapter = new SqlDataAdapter("SELECT * FROM Customers; SELECT * FROM Orders;", cs))
+public static DataSet GetCustomersAndOrders(string connectionString)
 {
-    adapter.Fill(ds); // ds.Tables[0], ds.Tables[1]
+    const string sql = "SELECT * FROM dbo.Customers; SELECT * FROM dbo.Orders;";
+    var ds = new DataSet();
+
+    using (var adapter = new SqlDataAdapter(sql, connectionString))
+    {
+        adapter.TableMappings.Add("Table",  "Customers");
+        adapter.TableMappings.Add("Table1", "Orders");
+        adapter.Fill(ds);
+    }
+
+    return ds;
 }
 ```
 
 ### 13) DataTable, DataRow, DataColumn, DataView
 
+Build in-memory tables, add rows, and apply **DataView** for filtering and sorting without hitting the database.
+
 ```csharp
 using System.Data;
 
+// Create schema
 var table = new DataTable("Customers");
-table.Columns.Add(new DataColumn("Id", typeof(int)));
-table.Columns.Add(new DataColumn("Name", typeof(string)));
-table.Columns.Add(new DataColumn("City", typeof(string)));
+table.Columns.Add("Id",   typeof(int));
+table.Columns.Add("Name", typeof(string));
+table.Columns.Add("City", typeof(string));
 
+// Add rows
 var row = table.NewRow();
-row["Id"] = 1;
-row["Name"] = "Alice";
+row["Id"]   = 1;
+row["Name"] = "Contoso Ltd";
 row["City"] = "London";
 table.Rows.Add(row);
 
+// Filtered/sorted view (e.g. for binding to UI)
 var view = new DataView(table)
 {
     RowFilter = "City = 'London'",
-    Sort = "Name ASC"
+    Sort      = "Name ASC"
 };
 ```
 
-### 14) SqlParameter
+### 14) SqlParameter — Typed parameters
+
+Prefer **Add(name, SqlDbType, size)** over `AddWithValue` for stable query plans and correct types.
 
 ```csharp
 using System.Data;
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-using (var connection = new SqlConnection(cs))
-using (var command = new SqlCommand("SELECT * FROM Customers WHERE City = @City;", connection))
+public static void ListCustomersByCity(string connectionString, string city)
 {
-    command.Parameters.Add("@City", SqlDbType.NVarChar, 50).Value = "London";
+    const string sql = "SELECT Id, Name, City, Country FROM dbo.Customers WHERE City = @City;";
+
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand(sql, connection);
+    command.Parameters.Add("@City", SqlDbType.NVarChar, 100).Value = city;
+
     connection.Open();
-    using (var reader = command.ExecuteReader())
+    using var reader = command.ExecuteReader();
+    while (reader.Read())
     {
-        while (reader.Read())
-        {
-            Console.WriteLine(reader["Name"]);
-        }
+        Console.WriteLine($"{reader.GetInt32(0)} | {reader.GetString(1)} | {reader.GetString(2)}");
     }
 }
 ```
 
-### 15) SqlTransaction
+### 15) SqlTransaction — Explicit local transaction
+
+Use the **same connection** and pass the **transaction** into every command. Commit only after all steps succeed; otherwise roll back.
 
 ```csharp
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-using (var connection = new SqlConnection(cs))
+public static void TransferBalance(string connectionString, int fromAccountId, int toAccountId, decimal amount)
 {
+    using var connection = new SqlConnection(connectionString);
     connection.Open();
-    using (var tx = connection.BeginTransaction())
+
+    using var transaction = connection.BeginTransaction();
+    try
     {
-        try
+        using (var debit = new SqlCommand(
+            "UPDATE dbo.Accounts SET Balance = Balance - @Amount WHERE Id = @Id;", connection, transaction))
         {
-            using (var cmd = new SqlCommand("UPDATE Accounts SET Balance = Balance - 10 WHERE Id = 1;", connection, tx))
-                cmd.ExecuteNonQuery();
-
-            using (var cmd = new SqlCommand("UPDATE Accounts SET Balance = Balance + 10 WHERE Id = 2;", connection, tx))
-                cmd.ExecuteNonQuery();
-
-            tx.Commit();
+            debit.Parameters.AddWithValue("@Amount", amount);
+            debit.Parameters.AddWithValue("@Id", fromAccountId);
+            debit.ExecuteNonQuery();
         }
-        catch
+
+        using (var credit = new SqlCommand(
+            "UPDATE dbo.Accounts SET Balance = Balance + @Amount WHERE Id = @Id;", connection, transaction))
         {
-            tx.Rollback();
-            throw;
+            credit.Parameters.AddWithValue("@Amount", amount);
+            credit.Parameters.AddWithValue("@Id", toAccountId);
+            credit.ExecuteNonQuery();
         }
+
+        transaction.Commit();
+    }
+    catch
+    {
+        transaction.Rollback();
+        throw;
     }
 }
 ```
@@ -422,7 +539,7 @@ using (var connection = new SqlConnection(cs))
 #### Structure (common parts)
 
 ```text
-Server=.;Database=SampleDb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;
+Server=.;Database=AdoNetSample;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;
 ```
 
 Useful keywords:
@@ -443,7 +560,7 @@ Useful keywords:
 <configuration>
   <connectionStrings>
     <add name="DefaultConnection"
-         connectionString="Server=.;Database=SampleDb;Integrated Security=True;"
+         connectionString="Server=.;Database=AdoNetSample;Integrated Security=True;TrustServerCertificate=True;"
          providerName="System.Data.SqlClient" />
   </connectionStrings>
 </configuration>
@@ -455,7 +572,7 @@ Useful keywords:
 <configuration>
   <connectionStrings>
     <add name="DefaultConnection"
-         connectionString="Server=.;Database=SampleDb;Integrated Security=True;"
+         connectionString="Server=.;Database=AdoNetSample;Integrated Security=True;TrustServerCertificate=True;"
          providerName="System.Data.SqlClient" />
   </connectionStrings>
 </configuration>
@@ -466,7 +583,7 @@ Useful keywords:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=SampleDb;Integrated Security=True;"
+    "DefaultConnection": "Server=.;Database=AdoNetSample;Integrated Security=True;TrustServerCertificate=True;"
   }
 }
 ```
@@ -507,21 +624,21 @@ public class MyRepo
 #### Windows Authentication
 
 ```text
-Server=.;Database=SampleDb;Integrated Security=True;
+Server=.;Database=AdoNetSample;Integrated Security=True;TrustServerCertificate=True;
 ```
 
 #### SQL Server Authentication
 
 ```text
-Server=.;Database=SampleDb;User ID=AppUser;Password=StrongPassword!;
+Server=.;Database=AdoNetSample;User ID=AppUser;Password=StrongPassword!;TrustServerCertificate=True;
 ```
 
-#### Azure SQL authentication basics
+#### Azure SQL
 
-At minimum, you typically enable encryption:
+Use encryption and your Azure server/database name:
 
 ```text
-Server=yourserver.database.windows.net;Database=SampleDb;
+Server=yourserver.database.windows.net;Database=AdoNetSample;
 User ID=...;Password=...;Encrypt=True;TrustServerCertificate=False;
 ```
 
@@ -654,38 +771,63 @@ Common behaviors:
 
 ### 22) SqlDataReader deep dive (Connected)
 
-Key characteristics:
+- **Forward-only**, **read-only** — ideal for streaming and report-style reads.
+- **Low memory**: one row in the buffer at a time.
+- **Connection must stay open** for the duration of the read.
 
-- **Forward-only**
-- **Read-only**
-- Very fast and memory efficient
-
-#### Async reading
+#### Async reading with CancellationToken
 
 ```csharp
 using System.Data.SqlClient;
 
-const string cs = "Server=.;Database=SampleDb;Integrated Security=True;";
-
-await using var connection = new SqlConnection(cs);
-await using var command = new SqlCommand("SELECT Id, Name FROM Customers;", connection);
-await connection.OpenAsync();
-
-await using var reader = await command.ExecuteReaderAsync();
-while (await reader.ReadAsync())
+public static async Task<List<string>> GetCustomerNamesAsync(
+    string connectionString, CancellationToken cancellationToken = default)
 {
-    Console.WriteLine(reader.GetInt32(0));
+    const string sql = "SELECT Name FROM dbo.Customers ORDER BY Name;";
+    var names = new List<string>();
+
+    await using var connection = new SqlConnection(connectionString);
+    await using var command = new SqlCommand(sql, connection);
+    await connection.OpenAsync(cancellationToken);
+
+    await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+    while (await reader.ReadAsync(cancellationToken))
+    {
+        names.Add(reader.GetString(0));
+    }
+
+    return names;
 }
 ```
 
-#### Multiple result sets + NextResult()
+#### Multiple result sets (e.g. from `usp_GetDashboardData`)
 
 ```csharp
-using (var reader = command.ExecuteReader())
+using System.Data.SqlClient;
+
+public static void ReadDashboardData(string connectionString)
 {
-    while (reader.Read()) { /* first result set */ }
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand("dbo.usp_GetDashboardData", connection);
+    command.CommandType = System.Data.CommandType.StoredProcedure;
+
+    connection.Open();
+    using var reader = command.ExecuteReader();
+
+    // First result set: recent customers
+    while (reader.Read())
+    {
+        Console.WriteLine($"Customer: {reader["Name"]}, City: {reader["City"]}");
+    }
+
+    // Second result set: recent orders
     if (reader.NextResult())
-        while (reader.Read()) { /* second result set */ }
+    {
+        while (reader.Read())
+        {
+            Console.WriteLine($"Order: {reader["OrderNumber"]}, Total: {reader["TotalAmount"]}");
+        }
+    }
 }
 ```
 
@@ -693,82 +835,81 @@ using (var reader = command.ExecuteReader())
 
 ### 23) DataSet & DataAdapter deep dive (Disconnected)
 
-#### Fill()
+#### Fill() with table mappings
 
 ```csharp
-var ds = new System.Data.DataSet();
-using (var adapter = new System.Data.SqlClient.SqlDataAdapter(
-    "SELECT * FROM Customers; SELECT * FROM Orders;", cs))
-{
-    adapter.Fill(ds);
-}
-```
-
-#### Update()
-
-```csharp
+using System.Data;
 using System.Data.SqlClient;
 
-var table = new System.Data.DataTable();
-using (var adapter = new SqlDataAdapter("SELECT Id, Name, City FROM Customers;", cs))
+var ds = new DataSet();
+const string sql = "SELECT * FROM dbo.Customers; SELECT * FROM dbo.Orders;";
+
+using (var adapter = new SqlDataAdapter(sql, connectionString))
 {
-    adapter.Fill(table);
-
-    table.Rows[0]["City"] = "Paris";
-
-    var builder = new SqlCommandBuilder(adapter);
-    adapter.UpdateCommand = builder.GetUpdateCommand();
-    adapter.Update(table);
-}
-```
-
-#### Handling multiple tables + mapping
-
-```csharp
-var ds = new System.Data.DataSet();
-using (var adapter = new System.Data.SqlClient.SqlDataAdapter(
-    "SELECT * FROM Customers; SELECT * FROM Orders;", cs))
-{
-    adapter.TableMappings.Add("Table", "Customers");
+    adapter.TableMappings.Add("Table",  "Customers");
     adapter.TableMappings.Add("Table1", "Orders");
     adapter.Fill(ds);
 }
+
+// Access by name
+DataTable customers = ds.Tables["Customers"];
+DataTable orders    = ds.Tables["Orders"];
 ```
 
-#### DataRelation
+#### DataRelation and navigation
 
 ```csharp
-var customers = ds.Tables["Customers"];
-var orders = ds.Tables["Orders"];
-ds.Relations.Add("Customer_Orders", customers.Columns["Id"], orders.Columns["CustomerId"]);
-```
+ds.Relations.Add("Customer_Orders",
+    customers.Columns["Id"],
+    orders.Columns["CustomerId"]);
 
-#### DataView filtering
-
-```csharp
-var view = new System.Data.DataView(ds.Tables["Customers"])
+foreach (DataRow custRow in customers.Rows)
 {
-    RowFilter = "City = 'London'",
-    Sort = "Name ASC"
+    var orderRows = custRow.GetChildRows("Customer_Orders");
+    Console.WriteLine($"Customer {custRow["Name"]} has {orderRows.Length} order(s).");
+}
+```
+
+#### Update() with SqlCommandBuilder
+
+```csharp
+using System.Data;
+using System.Data.SqlClient;
+
+var table = new DataTable();
+using (var adapter = new SqlDataAdapter(
+    "SELECT Id, Name, Email, City, Country FROM dbo.Customers;", connectionString))
+{
+    adapter.Fill(table);
+    table.Rows[0]["City"] = "Manchester";
+
+    var builder = new SqlCommandBuilder(adapter);
+    adapter.UpdateCommand = builder.GetUpdateCommand();
+    int updated = adapter.Update(table);
+}
+```
+
+#### DataView — filter and sort in memory
+
+```csharp
+var view = new DataView(ds.Tables["Customers"])
+{
+    RowFilter = "Country = 'United Kingdom'",
+    Sort      = "Name ASC"
 };
 ```
 
-#### XML serialization
+#### XML serialization and Merge
 
 ```csharp
-ds.WriteXml("data.xml", System.Data.XmlWriteMode.WriteSchema);
+ds.WriteXml("customers_orders.xml", XmlWriteMode.WriteSchema);
 
-var ds2 = new System.Data.DataSet();
-ds2.ReadXml("data.xml");
-```
+var ds2 = new DataSet();
+ds2.ReadXml("customers_orders.xml");
 
-#### Merge(), AcceptChanges(), RejectChanges()
-
-```csharp
-ds.Tables["Customers"].AcceptChanges();
-ds.Tables["Customers"].RejectChanges();
-
-ds.Merge(ds2);
+ds.Tables["Customers"].AcceptChanges();  // Mark current rows as unchanged
+ds.Tables["Customers"].RejectChanges(); // Discard pending changes
+ds.Merge(ds2);                          // Merge another DataSet
 ```
 
 ---
@@ -777,55 +918,129 @@ ds.Merge(ds2);
 
 ### 24) SQL Injection
 
-SQL injection happens when an attacker manipulates SQL via unsanitized input, allowing them to execute arbitrary SQL.
+SQL injection occurs when **untrusted input** is concatenated into SQL, allowing arbitrary statement execution (data theft, modification, or privilege escalation).
 
-#### Vulnerable example (do not use)
+#### Vulnerable code (do not use)
 
 ```csharp
-// BAD: concatenation
-string sql = "SELECT * FROM Users WHERE UserName = '" + userInput + "'";
+// BAD: user input concatenated into SQL (uses ApplicationUsers table)
+string sql = "SELECT * FROM dbo.ApplicationUsers WHERE UserName = '" + userInput + "'";
 ```
 
-If `userInput` is:
-
-```text
-' OR '1'='1
-```
-
-Then the query condition becomes always true and can return all rows.
+If `userInput` is `' OR '1'='1`, the effective predicate becomes `WHERE UserName = '' OR '1'='1'`, which is always true and can return every row.
 
 ---
 
-### 25) Parameterized Queries (Mitigation)
+### 25) Parameterized Queries and Stored Procedures (Mitigation)
 
-Use parameterized queries or stored procedures so user input is never directly concatenated.
+**Rule:** Never embed user input in SQL text. Use **parameters** or **stored procedures** only.
+
+#### Safe parameterized query (ApplicationUsers)
 
 ```csharp
 using System.Data;
 using System.Data.SqlClient;
 
-using (var connection = new SqlConnection(cs))
-using (var command = new SqlCommand("SELECT * FROM Users WHERE UserName = @UserName;", connection))
+public static DataTable GetUserByUserName(string connectionString, string userName)
 {
-    command.Parameters.Add("@UserName", SqlDbType.NVarChar, 50).Value = userInput;
-    connection.Open();
-    using (var reader = command.ExecuteReader()) { }
+    const string sql = "SELECT Id, UserName, DisplayName, IsActive FROM dbo.ApplicationUsers WHERE UserName = @UserName;";
+    var table = new DataTable();
+
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand(sql, connection);
+    command.Parameters.Add("@UserName", SqlDbType.NVarChar, 50).Value = userName;
+
+    using var adapter = new SqlDataAdapter(command);
+    adapter.Fill(table);
+    return table;
 }
 ```
 
 #### Add vs AddWithValue
 
-- Prefer `Add(..., SqlDbType...)` for correct typing and query plan stability.
-- `AddWithValue` can infer suboptimal types/sizes.
+- **Prefer** `command.Parameters.Add("@Name", SqlDbType.NVarChar, 100).Value = value` for explicit type/size and stable query plans.
+- **Avoid** `AddWithValue` for non-trivial apps: it can infer wrong types (e.g. string as NVARCHAR(1)) and hurt performance.
 
-#### Output parameters, return values, TVPs
+#### Stored procedure with output parameter (`usp_GetCustomerCountByCity`)
 
-This guide includes all common patterns:
+```csharp
+using System.Data;
+using System.Data.SqlClient;
 
-- Input params (default)
-- Output params (`Direction = Output`)
-- Return values (`Direction = ReturnValue`)
-- Table-valued parameters (`SqlDbType.Structured`)
+public static int GetCustomerCountByCity(string connectionString, string city)
+{
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand("dbo.usp_GetCustomerCountByCity", connection);
+    command.CommandType = CommandType.StoredProcedure;
+
+    command.Parameters.Add("@City", SqlDbType.NVarChar, 100).Value = city;
+    var outParam = new SqlParameter("@Count", SqlDbType.Int) { Direction = ParameterDirection.Output };
+    command.Parameters.Add(outParam);
+
+    connection.Open();
+    command.ExecuteNonQuery();
+    return (int)outParam.Value;
+}
+```
+
+#### Stored procedure with return value and output message (`usp_TransferBalance`)
+
+```csharp
+using System.Data;
+using System.Data.SqlClient;
+
+public static bool TransferBalance(string connectionString, int fromId, int toId, decimal amount, out string? errorMessage)
+{
+    errorMessage = null;
+
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand("dbo.usp_TransferBalance", connection);
+    command.CommandType = CommandType.StoredProcedure;
+
+    command.Parameters.Add("@FromAccountId", SqlDbType.Int).Value = fromId;
+    command.Parameters.Add("@ToAccountId",   SqlDbType.Int).Value = toId;
+    command.Parameters.Add("@Amount",       SqlDbType.Decimal, 18).Value = amount;
+    command.Parameters.Add("@ErrorMessage", SqlDbType.NVarChar, 500).Direction = ParameterDirection.Output;
+
+    var returnParam = new SqlParameter("@Return", SqlDbType.Int) { Direction = ParameterDirection.ReturnValue };
+    command.Parameters.Add(returnParam);
+
+    connection.Open();
+    command.ExecuteNonQuery();
+
+    int result = (int)returnParam.Value!;
+    errorMessage = command.Parameters["@ErrorMessage"].Value as string;
+    return result == 0;
+}
+```
+
+#### Table-valued parameter (`usp_GetCustomersByIds`)
+
+```csharp
+using System.Data;
+using System.Data.SqlClient;
+
+public static DataTable GetCustomersByIds(string connectionString, IEnumerable<int> ids)
+{
+    var idTable = new DataTable();
+    idTable.Columns.Add("Id", typeof(int));
+    foreach (var id in ids)
+        idTable.Rows.Add(id);
+
+    var result = new DataTable();
+    using var connection = new SqlConnection(connectionString);
+    using var command = new SqlCommand("dbo.usp_GetCustomersByIds", connection);
+    command.CommandType = CommandType.StoredProcedure;
+
+    var tvp = command.Parameters.AddWithValue("@Ids", idTable);
+    tvp.SqlDbType = SqlDbType.Structured;
+    tvp.TypeName = "dbo.IdList";
+
+    using var adapter = new SqlDataAdapter(command);
+    adapter.Fill(result);
+    return result;
+}
+```
 
 ---
 
@@ -872,99 +1087,189 @@ flowchart TD
 
 ## PHASE 8 — Advanced ADO.NET Topics
 
-### 29) Asynchronous ADO.NET (OpenAsync/ExecuteAsync + cancellation)
+### 29) Asynchronous ADO.NET
 
-```csharp
-public async Task<int> InsertAsync(string cs, string name, CancellationToken ct)
-{
-    const string sql = "INSERT INTO Customers(Name) VALUES(@Name);";
-    await using var connection = new System.Data.SqlClient.SqlConnection(cs);
-    await using var command = new System.Data.SqlClient.SqlCommand(sql, connection);
-    command.Parameters.Add("@Name", System.Data.SqlDbType.NVarChar, 100).Value = name;
-    await connection.OpenAsync(ct);
-    return await command.ExecuteNonQueryAsync(ct);
-}
-```
-
-### 30) Bulk operations (SqlBulkCopy)
+Use **OpenAsync**, **ExecuteReaderAsync**, **ExecuteNonQueryAsync**, **ExecuteScalarAsync** with **CancellationToken** so long-running or parallel work can be cancelled and does not block threads.
 
 ```csharp
 using System.Data;
 using System.Data.SqlClient;
 
-public void BulkInsert(string cs, DataTable table)
+public static async Task<int> InsertCustomerAsync(
+    string connectionString,
+    string name, string? email, string? city, string? country,
+    CancellationToken cancellationToken = default)
 {
-    using var connection = new SqlConnection(cs);
+    const string sql = @"
+        INSERT INTO dbo.Customers (Name, Email, City, Country)
+        VALUES (@Name, @Email, @City, @Country);
+        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+    await using var connection = new SqlConnection(connectionString);
+    await using var command = new SqlCommand(sql, connection);
+
+    command.Parameters.Add("@Name",    SqlDbType.NVarChar, 100).Value = name;
+    command.Parameters.Add("@Email",   SqlDbType.NVarChar, 255).Value = (object?)email ?? DBNull.Value;
+    command.Parameters.Add("@City",    SqlDbType.NVarChar, 100).Value = (object?)city ?? DBNull.Value;
+    command.Parameters.Add("@Country", SqlDbType.NVarChar, 100).Value = (object?)country ?? DBNull.Value;
+
+    await connection.OpenAsync(cancellationToken);
+    var id = await command.ExecuteScalarAsync(cancellationToken);
+    return Convert.ToInt32(id);
+}
+```
+
+### 30) Bulk operations (SqlBulkCopy)
+
+Use **SqlBulkCopy** for high-volume inserts into `dbo.Customers` (or any table). Map source columns to destination columns; optionally set **BatchSize** and **BulkCopyTimeout**.
+
+```csharp
+using System.Data;
+using System.Data.SqlClient;
+
+public static void BulkInsertCustomers(string connectionString, DataTable customers)
+{
+    using var connection = new SqlConnection(connectionString);
     connection.Open();
 
     using var bulk = new SqlBulkCopy(connection)
     {
-        DestinationTableName = "dbo.Customers"
+        DestinationTableName = "dbo.Customers",
+        BatchSize = 1000,
+        BulkCopyTimeout = 60
     };
 
-    bulk.ColumnMappings.Add("Name", "Name");
-    bulk.ColumnMappings.Add("City", "City");
-    bulk.WriteToServer(table);
+    bulk.ColumnMappings.Add("Name",    "Name");
+    bulk.ColumnMappings.Add("Email",   "Email");
+    bulk.ColumnMappings.Add("City",    "City");
+    bulk.ColumnMappings.Add("Country", "Country");
+    bulk.WriteToServer(customers);
 }
 ```
 
-### 31) Stored procedures (concept note from the source)
+### 31) Stored procedures — summary
 
-Stored procedures are a core ADO.NET pattern. Use `CommandType.StoredProcedure`, pass parameters, and handle:
+The sample database provides:
 
-- Multiple result sets (`NextResult()`)
-- Output parameters
-- Return status codes
+- **usp_GetCustomerById** — input param, single result set.
+- **usp_GetDashboardData** — multiple result sets; use `NextResult()` in C#.
+- **usp_GetCustomerCountByCity** — output parameter.
+- **usp_TransferBalance** — return value + output message; transaction inside SP.
+- **usp_GetCustomersByIds** — table-valued parameter (`dbo.IdList`).
 
-### 32) XML & JSON with SQL Server
+Always set `CommandType = CommandType.StoredProcedure` and pass parameters by name (never concatenate).
 
-- Use `ExecuteXmlReader()` with `FOR XML`
-- Use `ExecuteScalar()` to read `FOR JSON` output
-- Use `OPENJSON` on the SQL side when needed
+### 32) XML and JSON with SQL Server
 
-### 33) Handling large data
+- **FOR XML**: use `command.ExecuteXmlReader()` and read the XML stream.
+- **FOR JSON**: use `ExecuteScalar()` (or a reader) to get the JSON string; parse with `System.Text.Json` or Newtonsoft.
+- **OPENJSON**: use in T-SQL for server-side JSON parsing; call from ADO.NET as normal text or SP.
 
-- Use `CommandBehavior.SequentialAccess` to stream `VARBINARY(MAX)` efficiently.
+### 33) Handling large data (BLOB streaming)
 
-### 34) Error handling (`SqlException`) + retry for transient faults
+For `dbo.Files.Content` (VARBINARY(MAX)), use **CommandBehavior.SequentialAccess** and **GetBytes** to stream without loading the entire column into memory.
 
-- Inspect `SqlException.Number` for targeted handling.
-- Consider retry for transient faults (especially in cloud/Azure SQL scenarios).
+```csharp
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+
+public static async Task SaveFileContentToStreamAsync(
+    string connectionString, int fileId, Stream destination, CancellationToken ct = default)
+{
+    const string sql = "SELECT Content FROM dbo.Files WHERE Id = @Id;";
+
+    await using var connection = new SqlConnection(connectionString);
+    await using var command = new SqlCommand(sql, connection);
+    command.Parameters.Add("@Id", SqlDbType.Int).Value = fileId;
+
+    await connection.OpenAsync(ct);
+    await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, ct);
+
+    if (!await reader.ReadAsync(ct)) return;
+
+    const int bufferSize = 81920;
+    var buffer = new byte[bufferSize];
+    long offset = 0;
+    int read;
+
+    while ((read = (int)reader.GetBytes(0, offset, buffer, 0, bufferSize)) > 0)
+    {
+        await destination.WriteAsync(buffer.AsMemory(0, read), ct);
+        offset += read;
+    }
+}
+```
+
+### 34) Error handling and retry (SqlException)
+
+Catch **SqlException** to access **Number**, **State**, **Class**, and **Message**. Use these for logging and for **retry logic** on transient errors (e.g. Azure SQL throttling, network blips).
+
+```csharp
+using System.Collections.Generic;
+using System.Data.SqlClient;
+
+// Common transient error numbers (Azure SQL / network)
+private static readonly HashSet<int> TransientErrors = new() { -2, 20, 64, 233, 10053, 10054, 10060, 40197, 40501, 40613, 49918, 49919, 49920 };
+
+public static async Task<T> ExecuteWithRetryAsync<T>(
+    Func<Task<T>> operation,
+    int maxRetries = 3,
+    CancellationToken cancellationToken = default)
+{
+    for (int attempt = 1; ; attempt++)
+    {
+        try
+        {
+            return await operation();
+        }
+        catch (SqlException ex) when (attempt < maxRetries && TransientErrors.Contains(ex.Number))
+        {
+            await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)), cancellationToken);
+        }
+    }
+}
+
+// Usage: wrap any ADO.NET call
+var customer = await ExecuteWithRetryAsync(() => GetCustomerByIdAsync(connectionString, id), 3, ct);
+```
+
+Log **SqlException** with at least: `Number`, `State`, `Message`, and your correlation ID.
 
 ---
 
 ## PHASE 9 — Performance & Best Practices
 
-### 35) Performance optimization (high-signal checklist)
+### 35) Performance optimization
 
-- Use indexes properly; verify query plans
-- Avoid `SELECT *` in production queries
-- Use `SqlDataReader` for fast forward-only reads
-- Avoid `DataSet` unless you need offline multi-table work
-- Cache reference data where appropriate
-- Profile with **SQL Profiler / Extended Events / Query Store**
+| Practice | Rationale |
+|----------|-----------|
+| Use indexes on filter/join/sort columns | Reduces I/O and CPU; verify with execution plans. |
+| Avoid `SELECT *` | Reduces network and memory; only request needed columns. |
+| Prefer **SqlDataReader** for read-only, forward-only scenarios | Minimal memory and latency. |
+| Use **DataSet** only when you need offline multi-table editing or relations | Otherwise reader or Dapper-style mapping is cheaper. |
+| Cache reference/lookup data | Avoid repeated identical queries. |
+| Use **SqlBulkCopy** for bulk inserts | Far faster than row-by-row inserts. |
+| Set **CommandTimeout** and **BulkCopyTimeout** appropriately | Avoid indefinite waits in production. |
+
+Profile with **SQL Server Profiler**, **Extended Events**, or **Query Store** to find slow queries and blocking.
 
 ### 36) Resource management
 
-From the source notes, a key limitation of ADO.NET is **manual resource management**. Always:
+ADO.NET requires **explicit** open/close and disposal. Best practices:
 
-- Use `using` / `await using` with connections, commands, readers
-- Keep transactions short
-- Prevent connection leaks by disposing on all paths
-- Handle deadlocks and consider retry where appropriate
+- **Always** use `using` or `await using` for `SqlConnection`, `SqlCommand`, `SqlDataReader`, `SqlTransaction`, `SqlBulkCopy`, and `SqlDataAdapter` when scope is local.
+- **Keep transactions short** to reduce lock time and deadlock risk.
+- **Dispose on all code paths** (including catch blocks) so connections return to the pool.
+- For **deadlocks**, handle `SqlException` (e.g. error 1205), log, and consider a single retry with backoff.
 
 ---
 
 ## PHASE 10 — Architecture & Real-World Usage
 
-### 37) ADO.NET in Web API
+### 37) ADO.NET in Web API — Repository and DI
 
-Common patterns:
-
-- Repository pattern
-- Unit of Work (share connection + transaction)
-- Clean architecture usage
-- Dependency Injection
+Use a **repository** over ADO.NET and inject it via **DI** so controllers stay thin and testable.
 
 ```mermaid
 flowchart TD
@@ -973,21 +1278,93 @@ flowchart TD
   Repo --> DB[(SQL Server)]
 ```
 
-### 38) Logging & monitoring
+**DTOs and implementation (AdoNetSample schema):**
 
-- Log SQL execution time and row counts
-- Include correlation IDs per request
-- Log error number/state in `SqlException`
+```csharp
+using System.Data;
+using System.Data.SqlClient;
+
+public record CustomerDto(int Id, string Name, string? Email, string? City, string? Country);
+public record CustomerCreateDto(string Name, string? Email, string? City, string? Country);
+
+public interface ICustomerRepository
+{
+    Task<CustomerDto?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<int> CreateAsync(CustomerCreateDto dto, CancellationToken ct = default);
+}
+
+public sealed class CustomerRepository : ICustomerRepository
+{
+    private readonly string _connectionString;
+
+    public CustomerRepository(IConfiguration configuration)
+    {
+        _connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("DefaultConnection is missing.");
+    }
+
+    public async Task<CustomerDto?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        const string sql = "SELECT Id, Name, Email, City, Country FROM dbo.Customers WHERE Id = @Id;";
+
+        await using var connection = new SqlConnection(_connectionString);
+        await using var command = new SqlCommand(sql, connection);
+        command.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+
+        await connection.OpenAsync(ct);
+        await using var reader = await command.ExecuteReaderAsync(ct);
+
+        if (!await reader.ReadAsync(ct)) return null;
+
+        return new CustomerDto(
+            reader.GetInt32(0),
+            reader.GetString(1),
+            reader.IsDBNull(2) ? null : reader.GetString(2),
+            reader.IsDBNull(3) ? null : reader.GetString(3),
+            reader.IsDBNull(4) ? null : reader.GetString(4));
+    }
+
+    public async Task<int> CreateAsync(CustomerCreateDto dto, CancellationToken ct = default)
+    {
+        const string sql = @"
+            INSERT INTO dbo.Customers (Name, Email, City, Country) VALUES (@Name, @Email, @City, @Country);
+            SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        await using var connection = new SqlConnection(_connectionString);
+        await using var command = new SqlCommand(sql, connection);
+        command.Parameters.Add("@Name",    SqlDbType.NVarChar, 100).Value = dto.Name;
+        command.Parameters.Add("@Email",   SqlDbType.NVarChar, 255).Value = (object?)dto.Email ?? DBNull.Value;
+        command.Parameters.Add("@City",    SqlDbType.NVarChar, 100).Value = (object?)dto.City ?? DBNull.Value;
+        command.Parameters.Add("@Country", SqlDbType.NVarChar, 100).Value = (object?)dto.Country ?? DBNull.Value;
+
+        await connection.OpenAsync(ct);
+        var id = await command.ExecuteScalarAsync(ct);
+        return Convert.ToInt32(id);
+    }
+}
+```
+
+**Registration (e.g. in ASP.NET Core):**
+
+```csharp
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+```
+
+### 38) Logging and monitoring
+
+- Log **command text** (without secrets), **parameters**, **duration**, and **row count** for each execution.
+- Attach a **correlation ID** (e.g. from `HttpContext.TraceIdentifier`) to every log line.
+- On **SqlException**, log **Number**, **State**, and **Message** for diagnostics and alerting.
 
 ### 39) Testing
 
-- Mock repository interfaces for unit tests
-- Use integration tests against a real DB (LocalDB/Test DB)
-- For in-memory alternatives, consider testing at repository boundary using fake `DataTable`/objects (ADO.NET itself expects a real provider)
+- **Unit tests**: mock `ICustomerRepository` (and other interfaces); no database required.
+- **Integration tests**: run against a real database (e.g. AdoNetSample on LocalDB or a test instance); use transactions that roll back so data stays clean.
+- ADO.NET has no in-memory provider; for true isolation use a test DB or fakes at the repository boundary.
 
 ---
 
-## 11) ADO.NET Limitations (from the source notes) + Alternatives
+## ADO.NET Limitations and Alternatives
 
 ### Limitations
 
@@ -1009,8 +1386,10 @@ flowchart TD
 
 ---
 
-## References (from the source notes)
+## References
 
-- Data providers: `https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/data-providers`
-- `System.Data.Odbc` API: `https://learn.microsoft.com/en-us/dotnet/api/system.data.odbc?view=net-8.0`
+- [.NET Data Providers](https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/data-providers)
+- [System.Data.Odbc](https://learn.microsoft.com/en-us/dotnet/api/system.data.odbc?view=net-8.0)
+- [SqlConnection.ConnectionString](https://learn.microsoft.com/en-us/dotnet/api/system.data.sqlclient.sqlconnection.connectionstring)
+- [Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient) (recommended for .NET Core / .NET 5+)
 

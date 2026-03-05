@@ -16,4 +16,4 @@ A guide covering:
 - TPL, Task, and Task&lt;T&gt;
 - Scenario-based questions with solutions
 
-**[ADO.NET: Detailed Learning Guide (Step-by-Step + Examples)](./ADO.NET-Learning-Guide.md)**
+**[ADO.NET: Professional Learning Guide](./ADO.NET-Learning-Guide.md)** — Architecture, providers, connectivity, security, transactions, performance. Includes SQL setup script ([`docs/ado-net/AdoNetSampleDatabase.sql`](./docs/ado-net/AdoNetSampleDatabase.sql)) and copy-ready C# examples.
