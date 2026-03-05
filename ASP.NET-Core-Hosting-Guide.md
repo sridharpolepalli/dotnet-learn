@@ -203,7 +203,7 @@ dotnet publish -c Release -o ./publish
 
 The **publish** folder will contain the app DLLs and **web.config**. Use this folder path when configuring IIS (or for Docker/Azure).
 
-**Note:** Replace any reference to “RecipeApi” or “Epam.May15.API” in this guide with **your actual project name**. The main DLL name will be `RecipeApi.dll` (or your project name). Use that name in **web.config** in the next section.
+**Note:** Replace any reference to “RecipeApi” in this guide with **your actual project name**. The main DLL name will be `RecipeApi.dll` (or your project name). Use that name in **web.config** in the next section.
 
 ---
 
