@@ -23,55 +23,102 @@
 
 ## 1) Evolution of Distributed Architectures
 
-### Why distributed systems?
+Distributed systems need a way for **processes on different machines** (or in different languages) to **invoke operations** and **exchange data**. Over time, many approaches have emerged: **RPC**, **CORBA**, **RMI**, **EJB**, **.NET Remoting**, **SOAP**, **REST**, **gRPC**, **GraphQL**, **WebSockets**, and others. Each reflects the technology and requirements of its era.
 
-Applications evolved from **single, monolithic** systems (one process, one machine) to **distributed** systems (multiple processes, often across multiple machines) for several reasons:
+### Why distributed?
 
 | Driver | Explanation |
 |--------|-------------|
-| **Scale** | Handle more users and load by adding or scaling separate services. |
-| **Separation of concerns** | Frontend (UI), backend (business logic), and data can be developed and deployed independently. |
-| **Technology fit** | Use the best stack per component (e.g. .NET for API, React for UI, dedicated DB servers). |
-| **Resilience** | Failure of one component does not necessarily bring down the whole system. |
-| **Team organization** | Different teams can own different services. |
+| **Scale** | Spread load across machines; scale components independently. |
+| **Separation of concerns** | UI, business logic, and data on different tiers or services. |
+| **Technology and language mix** | Different stacks (Java, .NET, C++, browser) need to interoperate. |
+| **Resilience and deployment** | Deploy and update services without bringing down the whole system. |
 
-### Evolution (simplified)
+### Overview of distributed technologies
+
+The following table summarizes the main paradigms and technologies. They are grouped roughly by era and style (RPC-style vs resource/query style vs real-time).
+
+| Technology | Era / context | Style | Brief description |
+|------------|----------------|-------|--------------------|
+| **RPC** (Remote Procedure Call) | 1980s onward | Procedure call over network | Client calls a remote function as if it were local. Protocol and payload vary (e.g. Sun RPC, later JSON-RPC). |
+| **CORBA** (Common Object Request Broker Architecture) | 1990s | Object RPC, language-neutral | OMG standard; objects in different languages communicate via IDL and an object request broker. Complex, heavyweight. |
+| **RMI** (Java Remote Method Invocation) | Late 1990s | Object RPC, Java-only | Java-to-Java remote method calls. Tightly coupled to JVM; firewall-unfriendly (custom protocols). |
+| **EJB** (Enterprise JavaBeans) | Late 1990s–2000s | Server-side components + remoting | Java EE component model; session beans and entity beans could be accessed remotely (RMI-style). Often used with RMI. |
+| **.NET Remoting** | Early 2000s | Object RPC, .NET-only | .NET-to-.NET remote objects (TCP or HTTP). Binary or SOAP; replaced by WCF and later by HTTP APIs. |
+| **SOAP** (Simple Object Access Protocol) / **WCF** | 2000s | XML RPC over HTTP | XML-based RPC or document exchange over HTTP. WSDL describes the service; WS-* adds security, transactions. Cross-platform but verbose. |
+| **REST** | 2000s onward | Resource-oriented over HTTP | Resources identified by URLs; CRUD via HTTP methods (GET, POST, PUT, DELETE). Stateless, often JSON. Dominant for public and internal HTTP APIs. |
+| **gRPC** | 2010s onward | High-performance RPC | HTTP/2, binary (Protocol Buffers). Strongly typed, streaming, low latency. Used in microservices, cloud, mobile backends. |
+| **GraphQL** | 2010s onward | Query language over HTTP | Single endpoint; client sends a query and gets exactly the fields it needs. Reduces over/under-fetching; often used for UIs and aggregating backends. |
+| **WebSockets** | 2010s onward | Full-duplex, persistent connection | Upgrade from HTTP to a long-lived, bidirectional channel. Used for real-time push, chat, dashboards, games. Not RPC or REST by itself; complements them. |
+| **Others** | Various | — | **Message queues** (AMQP, RabbitMQ, Kafka) for async; **SignalR** ( .NET) over WebSockets; **Server-Sent Events (SSE)** for server-to-client stream; **JSON-RPC** for simple RPC over HTTP. |
+
+### Short descriptions
+
+**RPC (Remote Procedure Call)**  
+The idea: call a **procedure or method on another machine** as if it were local. The client sends a request (procedure id + arguments); the server runs the procedure and returns a result. Early RPC (e.g. Sun RPC) used custom binary protocols. Later variants use HTTP and JSON (e.g. JSON-RPC) or binary (gRPC). **Pros:** familiar programming model. **Cons:** tight coupling to method signatures; versioning and evolution can be hard.
+
+**CORBA (Common Object Request Broker Architecture)**  
+An **OMG** standard for distributed objects across **languages and vendors**. You define interfaces in **IDL**; the ORB (Object Request Broker) handles marshalling and location. **Pros:** language-neutral, standardized. **Cons:** complex, heavyweight, and in practice often replaced by HTTP-based or simpler RPC.
+
+**RMI (Java Remote Method Invocation)**  
+**Java-only** remote method calls. Objects implement remote interfaces; the client holds a stub that forwards calls to the JVM where the object lives. **Pros:** natural in Java. **Cons:** tied to Java, custom protocol, often blocked by firewalls; less used today in favor of REST or gRPC.
+
+**EJB (Enterprise JavaBeans)**  
+**Server-side component model** in Java EE. **Session beans** and **entity beans** could expose remote interfaces (via RMI). EJBs handled transactions, persistence, and lifecycle. **Pros:** standardized server-side Java. **Cons:** heavyweight; remote EJB usage declined in favor of REST and simpler services.
+
+**.NET Remoting**  
+**.NET** mechanism for remote objects: client and server use .NET types across process or machine boundaries. Could use TCP (binary) or HTTP (SOAP). **Pros:** .NET-native. **Cons:** .NET-only, complex lifecycle; superseded by **WCF** and then by **HTTP APIs** (e.g. ASP.NET Web API, REST).
+
+**SOAP (Simple Object Access Protocol) / Web services**  
+**XML-based** messages over HTTP (or other transports). **WSDL** describes the service contract; **WS-*** standards add security, reliability, transactions. **WCF** (Windows Communication Foundation) is the main .NET implementation. **Pros:** cross-platform, tooling, contracts. **Cons:** verbose, complex; many new APIs prefer REST and JSON.
+
+**REST (Representational State Transfer)**  
+**Architectural style** over HTTP: **resources** (identified by URLs), **representations** (e.g. JSON), and **HTTP methods** (GET, POST, PUT, PATCH, DELETE) for CRUD. Stateless, cacheable, simple. **Pros:** simple, universal (HTTP everywhere), good for public and internal APIs. **Cons:** no formal contract by default (often supplemented by OpenAPI); over/under-fetching unless designed carefully.
+
+**gRPC**  
+**RPC** over **HTTP/2** with **Protocol Buffers** (binary). Strongly typed, supports **streaming** (client, server, or bidirectional). **Pros:** performance, streaming, code generation from .proto. **Cons:** less browser-native than REST; tooling and debugging differ from JSON. Common in microservices and cloud.
+
+**GraphQL**  
+**Query language** and runtime: one (or few) HTTP endpoints; the client sends a **query** describing the data it needs and gets a JSON response shaped to that query. **Pros:** flexible, avoids over-fetching and multiple round-trips. **Cons:** complexity on server (resolvers, authorization); caching is harder than with REST URLs.
+
+**WebSockets**  
+**Upgrade** of an HTTP connection to a **full-duplex**, persistent channel. Both sides can send frames at any time. **Pros:** real-time, low latency. **Cons:** not REST or RPC by itself; often used alongside REST (e.g. REST for CRUD, WebSocket for live updates). **SignalR** (ASP.NET) abstracts WebSockets and fallbacks.
+
+### How they relate (conceptually)
 
 ```mermaid
-flowchart LR
-    subgraph Monolith["Monolith"]
-        A[Single app]
+flowchart TB
+    subgraph RPCstyle["RPC-style"]
+        RPC[RPC]
+        CORBA[CORBA]
+        RMI[RMI]
+        EJB[EJB]
+        Remoting[Remoting]
+        SOAP[SOAP]
+        gRPC[gRPC]
     end
 
-    subgraph ClientServer["Client-Server"]
-        C[Client]
-        S[Server]
-        C --> S
+    subgraph ResourceQuery["Resource and query style"]
+        REST[REST]
+        GraphQL[GraphQL]
     end
 
-    subgraph MultiTier["Multi-tier"]
-        UI[Presentation]
-        API[Business Logic]
-        DB[Data]
-        UI --> API --> DB
+    subgraph Realtime["Real-time and messaging"]
+        WS[WebSockets]
+        SSE[SSE]
+        MQ[Message queues]
     end
 
-    subgraph Distributed["Distributed / APIs"]
-        C2[Clients]
-        API2[Web API]
-        API2 --> Svc[Services]
-        C2 --> API2
-    end
+    Client[Client] --> RPCstyle
+    Client --> ResourceQuery
+    Client --> Realtime
 ```
 
-| Phase | Description |
-|-------|-------------|
-| **Monolith** | One application; UI, logic, and data in one process. Simple to deploy but hard to scale or change in parts. |
-| **Client-Server** | Client (UI) and server (logic + data) separated over the network. Clear split of responsibilities. |
-| **Multi-tier** | Presentation, business logic, and data tiers separated (e.g. browser, API, database). |
-| **Distributed / APIs** | Multiple clients (web, mobile, partners) talk to **Web APIs** (REST). APIs become the contract between frontend and backend; services can be scaled and versioned independently. |
+- **RPC-style** (RPC, CORBA, RMI, EJB, Remoting, SOAP, gRPC): emphasis on **calling operations** or **methods** with parameters and return values.  
+- **Resource/query style** (REST, GraphQL): emphasis on **resources** or **data** and how to read/update them (HTTP methods or queries).  
+- **Real-time and messaging** (WebSockets, SSE, queues): **persistent or async** channels; often used in addition to REST or gRPC.
 
-REST is an **architectural style** for these distributed, networked systems: it defines how clients and servers should communicate over HTTP so that APIs are consistent, stateless, and resource-oriented.
+REST is one of the most common choices for **HTTP APIs** (including ASP.NET Web API) because it uses standard HTTP, is easy to consume from any client, and fits well with the web and firewalls. The rest of this document focuses on **REST**.
 
 ---
 
