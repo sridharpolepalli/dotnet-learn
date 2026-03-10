@@ -10,7 +10,7 @@
 
 | Section | Topic |
 |--------|--------|
-| 1 | [Evolution of Distributed Architectures](#1-evolution-of-distributed-architectures) |
+| 1 | [Evolution of Distributed Architectures](#1-evolution-of-distributed-architectures) · [Service description, message format, samples](#service-description-message-format-and-samples) |
 | 2 | [Introduction to REST](#2-introduction-to-rest) |
 | 3 | [Key Principles of REST](#3-key-principles-of-rest) |
 | 4 | [Uniform Interface — Resources and Representations](#4-uniform-interface--resources-and-representations) |
@@ -83,6 +83,362 @@ An **OMG** standard for distributed objects across **languages and vendors**. Yo
 
 **WebSockets**  
 **Upgrade** of an HTTP connection to a **full-duplex**, persistent channel. Both sides can send frames at any time. **Pros:** real-time, low latency. **Cons:** not REST or RPC by itself; often used alongside REST (e.g. REST for CRUD, WebSocket for live updates). **SignalR** (ASP.NET) abstracts WebSockets and fallbacks.
+
+### Service description, message format, and samples
+
+For each technology below: **service description** (how the contract is defined), **message format** (wire format), and **sample** request/response or messages.
+
+---
+
+#### RPC (e.g. Sun RPC / JSON-RPC)
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **Sun RPC:** described in an **.x file** (e.g. `recipe.x`) that defines program number, procedure numbers, and argument/result types. **JSON-RPC:** no formal schema; method name and params are documented (e.g. OpenAPI for HTTP JSON-RPC). |
+| **Message format** | **Sun RPC:** **XDR** (External Data Representation), binary. **JSON-RPC:** **JSON** over HTTP or raw TCP. |
+
+**JSON-RPC 2.0 sample — request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "getRecipe",
+  "params": { "id": 2 },
+  "id": 1
+}
+```
+
+**JSON-RPC 2.0 sample — response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "id": 2,
+    "name": "Paneer Tikka",
+    "category": "Appetizer"
+  },
+  "id": 1
+}
+```
+
+---
+
+#### CORBA
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **IDL** (Interface Definition Language). Interfaces, operations, and types are defined in `.idl` files; compiled to client stubs and server skeletons in each target language. |
+| **Message format** | **IIOP** (Internet Inter-ORB Protocol): binary protocol (CDR — Common Data Representation) over TCP. |
+
+**IDL sample:**
+
+```idl
+interface RecipeService {
+  Recipe getRecipe(in long id);
+  long createRecipe(in Recipe r);
+};
+
+struct Recipe {
+  long id;
+  string name;
+  string category;
+  sequence<string> ingredients;
+  string instructions;
+};
+```
+
+**Wire:** Binary CDR (not human-readable); request includes operation name, parameters marshalled in CDR order.
+
+---
+
+#### RMI (Java)
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **Java interface** extending `java.rmi.Remote`; method signatures declare `RemoteException`. No separate IDL; the interface is the contract. |
+| **Message format** | **Java Serialization** over a custom **JRMP** (Java Remote Method Protocol) or optional **IIOP**. Binary. |
+
+**Interface sample:**
+
+```java
+public interface RecipeService extends Remote {
+  Recipe getRecipe(int id) throws RemoteException;
+  int createRecipe(Recipe r) throws RemoteException;
+}
+```
+
+**Wire:** Serialized Java objects (binary); request contains object id, method hash, serialized arguments.
+
+---
+
+#### EJB (remote)
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **Remote business interface** (Java interface annotated or declared in deployment descriptor). EJB container generates RMI stubs; contract is the Java interface + deployment metadata. |
+| **Message format** | Same as **RMI**: Java serialization over JRMP (or IIOP for interoperability). Binary. |
+
+**Remote interface sample:**
+
+```java
+@Remote
+public interface RecipeServiceRemote {
+  Recipe getRecipe(int id);
+  int createRecipe(Recipe r);
+}
+```
+
+**Wire:** Same as RMI — serialized method call and return value.
+
+---
+
+#### .NET Remoting
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **.NET types**: shared interface or base class (in a shared assembly or generated from WSDL if using SOAP). No standard IDL; .NET metadata describes types. |
+| **Message format** | **Binary** (BinaryFormatter) over TCP, or **SOAP/XML** over HTTP. Configurable via channel and formatter. |
+
+**C# interface sample:**
+
+```csharp
+public interface IRecipeService
+{
+  Recipe GetRecipe(int id);
+  int CreateRecipe(Recipe r);
+}
+```
+
+**Wire (SOAP over HTTP):** Same family as SOAP below (XML envelope). Binary formatter: .NET-specific binary serialization.
+
+---
+
+#### SOAP / WCF
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **WSDL** (Web Services Description Language): XML document describing endpoints, operations, and message types (XSD). Clients generate proxies from WSDL. **WCF:** also uses .NET contracts (interface + attributes). |
+| **Message format** | **XML** in a **SOAP envelope** (Envelope, Header, Body) over HTTP (or other transports). |
+
+**WSDL (simplified):** Defines types, messages, portType (operations), binding, and service endpoint URL.
+
+**SOAP request sample:**
+
+```xml
+POST /RecipeService.svc HTTP/1.1
+Host: example.com
+Content-Type: application/xml; charset=utf-8
+SOAPAction: "http://example.com/GetRecipe"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <GetRecipe xmlns="http://example.com/">
+      <id>2</id>
+    </GetRecipe>
+  </soap:Body>
+</soap:Envelope>
+```
+
+**SOAP response sample:**
+
+```xml
+HTTP/1.1 200 OK
+Content-Type: application/xml; charset=utf-8
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <GetRecipeResponse xmlns="http://example.com/">
+      <GetRecipeResult>
+        <id>2</id>
+        <name>Paneer Tikka</name>
+        <category>Appetizer</category>
+        <ingredients>Paneer</ingredients>
+        <ingredients>Yogurt</ingredients>
+        <instructions>Marinate paneer...</instructions>
+      </GetRecipeResult>
+    </GetRecipeResponse>
+  </soap:Body>
+</soap:Envelope>
+```
+
+---
+
+#### REST
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | No single standard; often **OpenAPI (Swagger)** (YAML/JSON) describes URLs, methods, request/response schemas. **WADL** (XML) is another option. REST itself does not mandate a contract format. |
+| **Message format** | **JSON** or **XML** (or other) in HTTP body; **HTTP method, URL, and headers** carry semantics. |
+
+**Contract (OpenAPI snippet):** Paths like `GET /recipes/{id}`, `POST /recipes`; schemas for `Recipe` in request/response.
+
+**Request sample:** See [Example HTTP Requests and Responses](#6-example-http-requests-and-responses) in this document.
+
+**REST GET sample:**
+
+```http
+GET /recipes/2 HTTP/1.1
+Host: example.com
+Accept: application/json
+```
+
+**REST response sample:**
+
+```json
+{
+  "id": 2,
+  "name": "Paneer Tikka",
+  "category": "Appetizer",
+  "ingredients": ["Paneer", "Yogurt", "Spices"],
+  "instructions": "Marinate paneer..."
+}
+```
+
+---
+
+#### gRPC
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **Protocol Buffers** `.proto` file: defines **services** (RPC methods) and **messages** (request/response types). Code generated for each language. |
+| **Message format** | **Binary** (Protocol Buffers encoding) over **HTTP/2**. Compact, typed, streaming-capable. |
+
+**.proto sample:**
+
+```protobuf
+syntax = "proto3";
+
+service RecipeService {
+  rpc GetRecipe(GetRecipeRequest) returns (Recipe);
+  rpc CreateRecipe(CreateRecipeRequest) returns (Recipe);
+}
+
+message GetRecipeRequest {
+  int32 id = 1;
+}
+
+message CreateRecipeRequest {
+  string name = 1;
+  string category = 2;
+  repeated string ingredients = 3;
+  string instructions = 4;
+}
+
+message Recipe {
+  int32 id = 1;
+  string name = 2;
+  string category = 3;
+  repeated string ingredients = 4;
+  string instructions = 5;
+}
+```
+
+**Wire:** Binary; not human-readable. HTTP/2 frames carry path (e.g. `/RecipeService/GetRecipe`) and binary protobuf payload.
+
+---
+
+#### GraphQL
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | **Schema** (SDL — Schema Definition Language): types, queries, mutations, subscriptions. Often exposed via introspection (`__schema`). No separate IDL file required; schema is the contract. |
+| **Message format** | **JSON** over HTTP. Request body contains `query` (and optionally `variables`, `operationName`). Response body is JSON with `data` and optionally `errors`. |
+
+**Schema sample (SDL):**
+
+```graphql
+type Recipe {
+  id: ID!
+  name: String!
+  category: String!
+  ingredients: [String!]!
+  instructions: String
+}
+
+type Query {
+  recipe(id: ID!): Recipe
+  recipes: [Recipe!]!
+}
+
+type Mutation {
+  createRecipe(input: RecipeInput!): Recipe!
+}
+
+input RecipeInput {
+  name: String!
+  category: String!
+  ingredients: [String!]!
+  instructions: String
+}
+```
+
+**Request sample:**
+
+```http
+POST /graphql HTTP/1.1
+Host: example.com
+Content-Type: application/json
+
+{
+  "query": "query { recipe(id: 2) { id name category ingredients instructions } }"
+}
+```
+
+**Response sample:**
+
+```json
+{
+  "data": {
+    "recipe": {
+      "id": "2",
+      "name": "Paneer Tikka",
+      "category": "Appetizer",
+      "ingredients": ["Paneer", "Yogurt", "Spices"],
+      "instructions": "Marinate paneer..."
+    }
+  }
+}
+```
+
+---
+
+#### WebSockets
+
+| Aspect | Description |
+|--------|-------------|
+| **Service description** | No standard contract. Application-defined: either **ad-hoc** (e.g. JSON messages with a `type` field) or documented (e.g. “send `{ \"action\": \"subscribe\", \"channel\": \"recipes\" }`”). Some use **WAMP** or **Socket.IO** conventions. |
+| **Message format** | **Frames** (binary or text). Payload is usually **JSON** or binary; format is up to the application. |
+
+**Handshake (HTTP upgrade):**
+
+```http
+GET /ws HTTP/1.1
+Host: example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+```
+
+**Application message sample (JSON over WebSocket):**
+
+```json
+{ "type": "recipe_updated", "id": 2, "name": "Paneer Tikka" }
+```
+
+---
+
+#### Others (summary)
+
+| Technology | Service description | Message format | Sample |
+|------------|---------------------|----------------|--------|
+| **Message queues (AMQP, Kafka)** | Queue/topic name and message schema (often documented or in a registry, e.g. Avro schema). | Binary or JSON; AMQP has its own framing. | Publish: `{"id":2,"name":"Paneer Tikka"}` to queue `recipe.created`. |
+| **SSE (Server-Sent Events)** | No formal contract; event types and payload format are application-defined. | **Text** stream; `data:` lines + optional `event:` and `id:`. | `event: recipe_updated\ndata: {"id":2,"name":"Paneer Tikka"}\n\n` |
+| **SignalR** | .NET hubs define methods; client invokes by name. Contract is the hub interface. | Negotiation then WebSocket (or long polling); payload is JSON (or MessagePack). | Client sends `{"H":"RecipeHub","M":"GetRecipe","A":[2]}`. |
+| **JSON-RPC** | Same as RPC above — method names and params documented or described (e.g. OpenAPI). | JSON request/response with `jsonrpc`, `method`, `params`, `id`. | See RPC samples above. |
+
+---
 
 ### How they relate (conceptually)
 
