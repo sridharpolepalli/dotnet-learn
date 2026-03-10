@@ -17,6 +17,7 @@
 | 5 | [HTTP Methods and Uniform Interface](#5-http-methods-and-uniform-interface) |
 | 6 | [Example HTTP Requests and Responses](#6-example-http-requests-and-responses) |
 | 7 | [HTTP Status Code Reference](#7-http-status-code-reference) |
+| 8 | [Web API](#8-web-api) · [Project structure](#project-structure) · [Creating a controller](#creating-a-sample-rest-web-api-controller) · [ActionResult](#actionresult-class) · [PUT vs POST](#put-vs-post-in-rest) |
 | — | [References](#references) |
 
 ---
@@ -1059,6 +1060,210 @@ REST APIs use **HTTP status codes** to indicate the result of the request. Below
 | Validation error on input | 400 Bad Request (or 422) |
 | Not authenticated | 401 Unauthorized |
 | Not allowed | 403 Forbidden |
+
+---
+
+## 8) Web API
+
+A **Web API** is a server-side framework that makes it easy to build **HTTP REST services** that can be consumed by a variety of clients, such as browsers, mobile apps, and other services. In ASP.NET Core, **Web API** is built on the same pipeline as MVC: you use **controllers** to handle HTTP requests and return HTTP responses (often JSON).
+
+### Project structure
+
+| Item | Description |
+|------|-------------|
+| **Controllers** | Contains controller classes. A **controller** in ASP.NET Core is responsible for handling HTTP requests and generating HTTP responses. It acts as a bridge between the client and the server: processing incoming requests, invoking the necessary actions, and returning the appropriate responses. |
+| **Program.cs** | The **entry point** of the application. It builds the host, configures services (e.g. `AddControllers()`), and the request pipeline (e.g. `MapControllers()`). |
+| **Startup.cs** | (If present) In .NET Core 3.1 and earlier, `Startup.cs` was used to configure services and the app’s request pipeline. In .NET 6+, configuration is typically done in **Program.cs** only. |
+
+### Creating a sample REST Web API controller
+
+1. **Base class** — Every API controller should be a subclass of **`Microsoft.AspNetCore.Mvc.ControllerBase`** (not `Controller`, which adds view support).
+2. **`[ApiController]`** — Add the **ApiController** attribute on the controller class to indicate that it is an API controller. This attribute enables automatic model validation, binding source inference, and other API-specific conveniences.
+3. **`[Route("[controller]")]`** — The **Route** attribute sets the **base route** for all actions in the controller. The `[controller]` placeholder is replaced with the controller’s name **minus the "Controller"** suffix. For example, `EmployeeController` becomes the route **employee**. Often the route is prefixed with **api**, e.g. `[Route("api/[controller]")]`, so the base path is **api/Employee**.
+
+**Example — Minimal controller and model:**
+
+```csharp
+[Route("api/[controller]")]
+[ApiController]
+public class EmployeeController : ControllerBase
+{
+    [HttpGet]
+    public string Get()
+    {
+        return "1:Scott:10000";
+    }
+
+    [HttpGet("{id}")]
+    public Employee Get(int id)
+    {
+        return new Employee { Id = id, Name = "Scott", Position = "Manager", Salary = 20000 };
+    }
+}
+
+public class Employee
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Position { get; set; }
+    public decimal Salary { get; set; }
+}
+```
+
+**API endpoints:**
+
+| Endpoint | Description |
+|----------|-------------|
+| `https://localhost:7071/api/Employee` | GET — returns the string from `Get()`. |
+| `https://localhost:7071/api/Employee/1` | GET — returns the `Employee` with id 1 (JSON). |
+
+**CURL examples:**
+
+```bash
+curl -X GET https://localhost:7071/api/Employee -H "accept: text/plain"
+curl -X GET https://localhost:7071/api/Employee/1
+```
+
+### HTTP, port, and query string
+
+- **HTTP** — The protocol used for the request (e.g. GET, POST). The host and path (e.g. `https://localhost:7071/api/Employee`) identify the target.
+- **Port** — In `https://localhost:7071`, **7071** is the port. HTTPS often uses 443; in development, Kestrel may use 5001 or 7071.
+- **Query string** — Optional key-value pairs after **?** in the URL (e.g. `?id=1&name=Scott`). Used for optional parameters, filtering, or when the parameter is not part of the path.
+
+**Input from query string — `[FromQuery]`:**
+
+When the parameter is passed in the **query string** (e.g. `?id=1`), use **FromQuery** so the model binder reads from the query string:
+
+```csharp
+[HttpGet]
+public Employee Get([FromQuery] int id)
+{
+    return new Employee
+    {
+        Id = id,
+        Name = "Scott",
+        Position = "Manager",
+        Salary = 20000
+    };
+}
+```
+
+**Endpoint:** `https://localhost:7071/api/Employee?id=1`
+
+Other binding sources: **FromRoute** (route template), **FromBody** (request body), **FromHeader** (headers).
+
+### ActionResult class
+
+**ActionResult** is a return type in ASP.NET Core that represents the **result of an action method**. It encapsulates the HTTP response (status code, headers, body) that should be sent back to the client, so you can return different response types based on conditions (e.g. 200 OK, 404 Not Found).
+
+| Type | Use |
+|------|-----|
+| **ActionResult** | Base type; you can return different result types (Ok, NotFound, BadRequest, etc.) from the same action. |
+| **ActionResult&lt;T&gt;** | When the action returns a **specific type** in the success case. Combines type safety with the ability to return other results (NotFound, BadRequest). |
+
+**Common action results:**
+
+| Method | HTTP status | Use |
+|--------|-------------|-----|
+| **Ok()** / **Ok(value)** | 200 OK | Success; optionally with a body. |
+| **CreatedAtAction(nameof(GetById), new { id }, resource)** | 201 Created | Resource created; sets **Location** header to the new resource URL. |
+| **NoContent()** | 204 No Content | Success with no body (e.g. after DELETE). |
+| **BadRequest()** / **BadRequest(message)** | 400 Bad Request | Invalid input or validation failure. |
+| **NotFound()** | 404 Not Found | Resource does not exist. |
+| **Unauthorized()** | 401 Unauthorized | Authentication required or failed. |
+
+**Examples:**
+
+```csharp
+return Ok();                    // 200 OK, no body
+return Ok(employee);            // 200 OK with employee object
+return CreatedAtAction(nameof(GetById), new { id = employee.Id }, employee);  // 201 Created + Location
+return NoContent();             // 204 No Content
+return BadRequest("Invalid input");  // 400 Bad Request
+return NotFound();              // 404 Not Found
+return Unauthorized();          // 401 Unauthorized
+```
+
+### Example — Full CRUD controller with ActionResult
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebApiDemo.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class EmployeeController : ControllerBase
+    {
+        private static Dictionary<int, Employee> Employees = new Dictionary<int, Employee>();
+        private static int nextId = 1;
+
+        [HttpPost]
+        public ActionResult<Employee> Create(Employee employee)
+        {
+            employee.Id = nextId++;
+            Employees[employee.Id] = employee;
+            return CreatedAtAction(nameof(GetById), new { id = employee.Id }, employee);
+        }
+
+        [HttpGet]
+        public ActionResult<IEnumerable<Employee>> GetAll()
+        {
+            return Ok(Employees.Values);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Employee> GetById(int id)
+        {
+            if (Employees.TryGetValue(id, out var employee))
+                return Ok(employee);
+            return NotFound();
+        }
+
+        [HttpPut("{id}")]
+        public ActionResult<Employee> Update(int id, Employee updatedEmployee)
+        {
+            if (Employees.ContainsKey(id))
+            {
+                updatedEmployee.Id = id;
+                Employees[id] = updatedEmployee;
+                return Ok(updatedEmployee);
+            }
+            return NotFound();
+        }
+
+        [HttpDelete("{id}")]
+        public ActionResult Delete(int id)
+        {
+            if (Employees.Remove(id))
+                return NoContent();
+            return NotFound();
+        }
+    }
+}
+```
+
+- **POST** → Create; returns **201 Created** and **Location** header.  
+- **GET** (all) → **200 OK** with list.  
+- **GET** (by id) → **200 OK** or **404 Not Found**.  
+- **PUT** → Full update; **200 OK** or **404 Not Found**.  
+- **DELETE** → **204 No Content** or **404 Not Found**.
+
+### PUT vs POST in REST
+
+| Aspect | PUT | POST |
+|--------|-----|------|
+| **Purpose** | **Update** (or create) a resource at a **known URI** with a **complete** new representation. | **Create** a new resource or **submit data** for processing. |
+| **Idempotent** | **Yes** — sending the same PUT request multiple times has the same effect as sending it once. | **No** — each identical POST may create another resource or have different side effects. |
+| **URI** | Client knows the target URI (e.g. `PUT /api/Employee/1`). | Client typically posts to a **collection** URI (e.g. `POST /api/Employee`); server assigns the new resource’s URI and returns it (e.g. in **Location** header). |
+| **Example** | Update a user’s full profile: `PUT /api/users/1` with the complete profile body. | Register a new user: `POST /api/users` with the new user data; server returns 201 and `Location: /api/users/123`. |
+
+**When to use which:**
+
+- Use **PUT** when you are **replacing** an existing resource at a known URI and you send the **full** representation. Use **PATCH** for partial updates if your API supports it.
+- Use **POST** when you are **creating** a new resource (server chooses the URI) or performing a non-idempotent operation (e.g. submit an order, send a message).
+
+Some APIs use **POST** for updates when the operation is not idempotent or does not replace the entire resource; REST conventions recommend PUT for full replacement and PATCH for partial updates.
 
 ---
 
