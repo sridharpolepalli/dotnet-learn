@@ -21,3 +21,5 @@ A guide covering:
 **[ASP.NET Core — Network, HTTP & Web Fundamentals](./ASP.NET-Core-Network-HTTP-Guide.md)** — Why ASP.NET Core, network programming and protocols, TCP vs HTTP, HTTP vs HTTPS (SSL/TLS handshake, asymmetric vs symmetric encryption), and HTTP in detail (methods and important concepts).
 
 **[ASP.NET Core — Hosting Guide](./ASP.NET-Core-Hosting-Guide.md)** — Web server and reverse proxy concepts, ASP.NET Core hosting options, step-by-step: create MVC app, deploy to local IIS (hosts file, IIS features, URL Rewrite, Hosting Bundle, web.config, in-process vs out-of-process), Kestrel-only hosting, Docker (install and host ASP.NET Core), Azure App Service (Visual Studio and dotnet/AZ CLI).
+
+**[ASP.NET Web API & REST](./ASP.NET-Web-API-REST-Guide.md)** — Evolution of distributed architectures, introduction to REST, key principles (stateless, client-server, uniform interface), resources and representations, HTTP methods, example requests and responses for a Recipe API, and HTTP status code reference.
