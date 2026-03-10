@@ -16,6 +16,7 @@
 | 6 | [Enable Swagger](#step-11-enable-swagger) |
 | 7 | [Testing](#testing-the-api) — Swagger UI, Postman, other tools |
 | 8 | [Sample .NET Console client](#sample-net-console-client) |
+| — | [Step-by-step Angular client](./Recipe-API-Angular-Client.md) — Setup, implement, run (detailed) |
 
 ---
 
@@ -621,6 +622,16 @@ Console.WriteLine($"Created: {response.Headers.Location}");
 - Run the console client: `dotnet run` from the **RecipeApiClient** folder.
 
 You can extend the console app with **PUT** and **DELETE** using `client.PutAsJsonAsync` and `client.DeleteAsync`.
+
+---
+
+## Angular client (step-by-step)
+
+For a **detailed step-by-step implementation** of an **Angular** client that consumes this Recipe API (Categories CRUD, services, components, routing, run, and CORS/proxy), see:
+
+**[Step-by-Step: Angular Client for Recipe Web API](./Recipe-API-Angular-Client.md)**
+
+That guide covers: prerequisites (Node, Angular CLI), creating the project, environment configuration, models, `CategoryService` (HttpClient), category list/detail/form components, routing, running with the API, and optional CORS or proxy setup.
 
 ---
 

@@ -25,3 +25,5 @@ A guide covering:
 **[ASP.NET Web API & REST](./ASP.NET-Web-API-REST-Guide.md)** — Evolution of distributed architectures, introduction to REST, key principles (stateless, client-server, uniform interface), resources and representations, HTTP methods, example requests and responses for a Recipe API, and HTTP status code reference.
 
 **[ASP.NET Web API — Recipe Practice (Onion Architecture)](./ASP.NET-Web-API-Recipe-Practice.md)** — Step-by-step: Recipe Web API with Repository layer (EF Core, Repository pattern), DTOs, Application layer (services), Controllers; enable Swagger in Visual Studio; testing with Swagger UI, Postman, and other tools; sample .NET Console client.
+
+**[Recipe API — Angular Client (Step-by-Step)](./Recipe-API-Angular-Client.md)** — Detailed setup, implement, and run: Angular CLI, project structure, environment (API URL), models, CategoryService (HttpClient), category list/detail/form components, routing, run and test; optional CORS and proxy.
