@@ -18,6 +18,7 @@
 | 6 | [Example HTTP Requests and Responses](#6-example-http-requests-and-responses) |
 | 7 | [HTTP Status Code Reference](#7-http-status-code-reference) |
 | 8 | [Web API](#8-web-api) · [Project structure](#project-structure) · [Creating a controller](#creating-a-sample-rest-web-api-controller) · [ActionResult](#actionresult-class) · [PUT vs POST](#put-vs-post-in-rest) |
+| — | [Step-by-step practice: Recipe Web API (Onion architecture)](./ASP.NET-Web-API-Recipe-Practice.md) — Repository layer (EF Core), DTOs, services, controllers, Swagger, testing (Swagger UI, Postman, other tools), .NET Console client. |
 | — | [References](#references) |
 
 ---

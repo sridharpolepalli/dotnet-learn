@@ -23,3 +23,5 @@ A guide covering:
 **[ASP.NET Core — Hosting Guide](./ASP.NET-Core-Hosting-Guide.md)** — Web server and reverse proxy concepts, ASP.NET Core hosting options, step-by-step: create MVC app, deploy to local IIS (hosts file, IIS features, URL Rewrite, Hosting Bundle, web.config, in-process vs out-of-process), Kestrel-only hosting, Docker (install and host ASP.NET Core), Azure App Service (Visual Studio and dotnet/AZ CLI).
 
 **[ASP.NET Web API & REST](./ASP.NET-Web-API-REST-Guide.md)** — Evolution of distributed architectures, introduction to REST, key principles (stateless, client-server, uniform interface), resources and representations, HTTP methods, example requests and responses for a Recipe API, and HTTP status code reference.
+
+**[ASP.NET Web API — Recipe Practice (Onion Architecture)](./ASP.NET-Web-API-Recipe-Practice.md)** — Step-by-step: Recipe Web API with Repository layer (EF Core, Repository pattern), DTOs, Application layer (services), Controllers; enable Swagger in Visual Studio; testing with Swagger UI, Postman, and other tools; sample .NET Console client.
