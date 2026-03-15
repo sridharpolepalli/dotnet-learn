@@ -3933,17 +3933,16 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
+      "projectUniqueName": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
       "projectName": "ObservabilityDemo.InventoryApi",
-      "projectPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
+      "projectPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
       "packagesPath": "C:\\Users\\Sridhar-Lenovo\\.nuget\\packages\\",
-      "outputPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\obj\\",
+      "outputPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\NuGet.Config",
         "C:\\Users\\Sridhar-Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -3952,14 +3951,17 @@
         "net8.0"
       ],
       "sources": {
-        "https://api.nuget.org/v3/index.json": {}
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\nugetrepo": {},
+        "https://api.nuget.org/v3/index.json": {},
+        "https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj": {
-              "projectPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj"
+            "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj": {
+              "projectPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj"
             }
           }
         }
@@ -4023,5 +4025,193 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Serilog.AspNetCore"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.AspNetCore"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.AspNetCore"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Logging.ApplicationInsights"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.EventCounterCollector"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.PerfCounterCollector"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.DependencyCollector"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.WindowsServer"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.AspNetCore.Http"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Configuration.Json"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Serilog.Settings.Configuration"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Serilog"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Logging.ApplicationInsights"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.PerfCounterCollector"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.EventCounterCollector"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.WindowsServer"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "System.IO.FileSystem.AccessControl"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.ApplicationInsights.DependencyCollector"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Caching.Memory"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Configuration.FileExtensions"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.DependencyModel"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.DependencyInjection.Abstractions"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Caching.Abstractions"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Options"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.FileProviders.Physical"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.Primitives"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.FileProviders.Abstractions"
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "libraryId": "Microsoft.Extensions.FileSystemGlobbing"
+    },
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json."
+    }
+  ]
 }

@@ -27,7 +27,7 @@
 
 All examples in this guide assume the following **sample database and objects** exist. Run the script **once** before executing any C# code.
 
-**Script location:** [`docs/ado-net/AdoNetSampleDatabase.sql`](docs/ado-net/AdoNetSampleDatabase.sql)
+**Script location:** [`AdoNetSampleDatabase.sql`](AdoNetSampleDatabase.sql)
 
 **What it creates:**
 
@@ -261,7 +261,7 @@ flowchart LR
 
 ## PHASE 2 — Core ADO.NET Components (SQL Server)
 
-All examples use the **AdoNetSample** database and tables created by [`AdoNetSampleDatabase.sql`](docs/ado-net/AdoNetSampleDatabase.sql). The same patterns apply to ODBC/OLE DB with their equivalent types.
+All examples use the **AdoNetSample** database and tables created by [`AdoNetSampleDatabase.sql`](AdoNetSampleDatabase.sql). The same patterns apply to ODBC/OLE DB with their equivalent types.
 
 **Shared connection string for this section:**
 

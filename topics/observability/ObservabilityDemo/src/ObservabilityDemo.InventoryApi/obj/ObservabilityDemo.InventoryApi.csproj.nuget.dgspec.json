@@ -1,23 +1,22 @@
 {
   "format": 1,
   "restore": {
-    "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj": {}
+    "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj": {}
   },
   "projects": {
-    "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj": {
+    "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj",
+        "projectUniqueName": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj",
         "projectName": "ObservabilityDemo.Common",
-        "projectPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj",
+        "projectPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj",
         "packagesPath": "C:\\Users\\Sridhar-Lenovo\\.nuget\\packages\\",
-        "outputPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\obj\\",
+        "outputPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\NuGet.Config",
           "C:\\Users\\Sridhar-Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -26,7 +25,10 @@
           "net8.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\nugetrepo": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
@@ -69,20 +71,19 @@
         }
       }
     },
-    "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj": {
+    "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
+        "projectUniqueName": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
         "projectName": "ObservabilityDemo.InventoryApi",
-        "projectPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
+        "projectPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\ObservabilityDemo.InventoryApi.csproj",
         "packagesPath": "C:\\Users\\Sridhar-Lenovo\\.nuget\\packages\\",
-        "outputPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\obj\\",
+        "outputPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.InventoryApi\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\NuGet.Config",
           "C:\\Users\\Sridhar-Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -91,14 +92,17 @@
           "net8.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\nugetrepo": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/portaluser76/IDCoder.IN/_packaging/IDcoder/nuget/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj": {
-                "projectPath": "D:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj"
+              "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj": {
+                "projectPath": "d:\\0Projects\\dotnet-learn\\ObservabilityDemo\\src\\ObservabilityDemo.Common\\ObservabilityDemo.Common.csproj"
               }
             }
           }
