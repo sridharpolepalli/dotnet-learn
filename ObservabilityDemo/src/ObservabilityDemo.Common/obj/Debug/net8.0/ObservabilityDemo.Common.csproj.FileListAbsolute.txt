@@ -1,0 +1,12 @@
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\bin\Debug\net8.0\ObservabilityDemo.Common.deps.json
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\bin\Debug\net8.0\ObservabilityDemo.Common.dll
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\bin\Debug\net8.0\ObservabilityDemo.Common.pdb
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ObservabilityDemo.Common.GeneratedMSBuildEditorConfig.editorconfig
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ObservabilityDemo.Common.AssemblyInfoInputs.cache
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ObservabilityDemo.Common.AssemblyInfo.cs
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ObservabilityDemo.Common.csproj.CoreCompileInputs.cache
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ObservabilityDemo.Common.sourcelink.json
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ObservabilityDemo.Common.dll
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\refint\ObservabilityDemo.Common.dll
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ObservabilityDemo.Common.pdb
+D:\0Projects\dotnet-learn\ObservabilityDemo\src\ObservabilityDemo.Common\obj\Debug\net8.0\ref\ObservabilityDemo.Common.dll
